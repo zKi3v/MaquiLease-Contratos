@@ -1,0 +1,36 @@
+# .NET
+bin/
+obj/
+/backend/MaquiLease.API/bin/
+/backend/MaquiLease.API/obj/
+.vs/
+.vscode/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Angular / Node
+node_modules/
+/frontend/maquilease-app/node_modules/
+dist/
+/frontend/maquilease-app/dist/
+.angular/
+.vercel/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.eslintcache
+
+# SQL Server / Docker
+maquilease_db/
+*.mdf
+*.ldf
+.env
+
+# OS Files
+.DS_Store
+Thumbs.db
+
+# User specific
+mds/

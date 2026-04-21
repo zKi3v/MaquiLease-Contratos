@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+  db_sql:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: maquilease_db
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=MaquiLeaseSuperPassword123!
+    ports:
+      - "1433:1433"
+    volumes:
+      - sql_data:/var/opt/mssql
+
+  api_backend:
+    build:
+      context: ./backend/MaquiLease.API
+      dockerfile: Dockerfile
+    container_name: maquilease_api
+    depends_on:
+      - db_sql
+    ports:
+      - "5033:80"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      # Sobreescribe la conexión para apuntar al contenedor SQL usando la contraseña
+      - ConnectionStrings__DefaultConnection=Server=db_sql;Database=MaquiLeaseDb;User=sa;Password=MaquiLeaseSuperPassword123!;TrustServerCertificate=True;
+
+  web_frontend:
+    build:
+      context: ./frontend/maquilease-app
+      dockerfile: Dockerfile
+    container_name: maquilease_web
+    depends_on:
+      - api_backend
+    ports:
+      - "4200:80"
+    environment:
+      # Aunque el contenedor del API sea api_backend internamente, desde el frontend 
+      # hosteado en el navegador del usuario se consultará como localhost:5033/api si están expuestos así.
+      # Para modificar esto sin reconstruir, podemos inyectar un bash hook o dejarlo codificado internamente.
+      - NGINX_PORT=80
+
+volumes:
+  sql_data:

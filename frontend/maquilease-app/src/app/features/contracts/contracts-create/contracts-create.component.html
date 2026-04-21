@@ -1,0 +1,92 @@
+<div class="card p-4 m-3 surface-card border-round shadow-2">
+  <h2 class="mb-4">Generar Nuevo Contrato</h2>
+  
+  <p-steps [model]="items" [(activeIndex)]="activeIndex" [readonly]="true" styleClass="mb-5"></p-steps>
+
+  <div class="p-fluid grid mt-4" [ngSwitch]="activeIndex">
+    
+    <!-- PASO 1 -->
+    <div *ngSwitchCase="0" class="col-12">
+      <div class="grid">
+        <div class="field col-12 md:col-6">
+          <label>Cliente Asociado *</label>
+          <p-dropdown [options]="clients" [(ngModel)]="contractForm.clientId" placeholder="Seleccione un Cliente" [filter]="true"></p-dropdown>
+        </div>
+        <div class="field col-12 md:col-6">
+          <label>Tipo de Contrato *</label>
+          <p-dropdown [options]="contractTypes" [(ngModel)]="contractForm.contractType"></p-dropdown>
+        </div>
+        <div class="field col-12 md:col-6" *ngIf="contractForm.contractType !== 'servicios'">
+          <label>Activo/Maquinaria *</label>
+          <p-dropdown [options]="assets" [(ngModel)]="contractForm.assetId" placeholder="Seleccione Activo" [filter]="true"></p-dropdown>
+        </div>
+        <div class="field col-12 md:col-6" *ngIf="contractForm.contractType !== 'arrendamiento'">
+          <label>Servicio Técnico/Profesional *</label>
+          <p-dropdown [options]="services" [(ngModel)]="contractForm.serviceId" placeholder="Seleccione Servicio" [filter]="true"></p-dropdown>
+        </div>
+      </div>
+      <div class="flex justify-content-end mt-4">
+        <p-button label="Siguiente" icon="pi pi-arrow-right" iconPos="right" (onClick)="next()" [disabled]="!canGoNextStep1"></p-button>
+      </div>
+    </div>
+
+    <!-- PASO 2 -->
+    <div *ngSwitchCase="1" class="col-12">
+      <div class="grid">
+        <div class="field col-12 md:col-6">
+          <label>Monto Total *</label>
+          <p-inputNumber [(ngModel)]="contractForm.totalAmount" mode="decimal" prefix="S/. "></p-inputNumber>
+        </div>
+        <div class="field col-12 md:col-6">
+          <label>Abono Inicial (Down Payment)</label>
+          <p-inputNumber [(ngModel)]="contractForm.initialPayment" mode="decimal" prefix="S/. "></p-inputNumber>
+        </div>
+        <div class="field col-12 md:col-6">
+          <label>Número de Cuotas (Amortización) *</label>
+          <p-inputNumber [(ngModel)]="contractForm.numberOfInstallments" [showButtons]="true" [min]="1" [max]="120"></p-inputNumber>
+        </div>
+        <div class="field col-12 md:col-6">
+          <label>Moneda</label>
+          <p-dropdown [options]="[{label:'PEN', value:'PEN'}, {label:'USD', value:'USD'}]" [(ngModel)]="contractForm.currency"></p-dropdown>
+        </div>
+        <div class="field col-12 md:col-6">
+          <label>Fecha Inicio</label>
+          <input pInputText type="date" [(ngModel)]="contractForm.startDate"/>
+        </div>
+        <div class="field col-12 md:col-6">
+          <label>Fecha Fin (Estimada)</label>
+          <input pInputText type="date" [(ngModel)]="contractForm.endDate"/>
+        </div>
+        <div class="field col-12">
+          <label>Términos y Condiciones / Notas</label>
+          <textarea pInputTextarea [(ngModel)]="contractForm.leasingTerms" rows="4"></textarea>
+        </div>
+      </div>
+      <div class="flex justify-content-between mt-4">
+        <p-button label="Atrás" icon="pi pi-arrow-left" styleClass="p-button-secondary" (onClick)="prev()"></p-button>
+        <p-button label="Siguiente" icon="pi pi-arrow-right" iconPos="right" (onClick)="next()" [disabled]="!canGoNextStep2"></p-button>
+      </div>
+    </div>
+
+    <!-- PASO 3 -->
+    <div *ngSwitchCase="2" class="col-12">
+      <div class="text-center mb-4">
+        <h3>Firma del Cliente</h3>
+        <p class="text-500">Por favor, trace su firma en el recuadro blanco para emitir el acuerdo legal.</p>
+        
+        <div class="border-solid border-300 border-round inline-block surface-0" style="touch-action: none;">
+          <canvas #signatureCanvas width="500" height="200"></canvas>
+        </div>
+        <div class="mt-2">
+          <p-button label="Limpiar Firma" icon="pi pi-eraser" styleClass="p-button-text p-button-danger" (onClick)="clearSignature()"></p-button>
+        </div>
+      </div>
+      
+      <div class="flex justify-content-between mt-4 border-top-1 surface-border pt-4">
+        <p-button label="Atrás" icon="pi pi-arrow-left" styleClass="p-button-secondary" (onClick)="prev()"></p-button>
+        <p-button label="Generar Contrato (Oficializar)" icon="pi pi-check-circle" styleClass="p-button-success" (onClick)="save()"></p-button>
+      </div>
+    </div>
+
+  </div>
+</div>

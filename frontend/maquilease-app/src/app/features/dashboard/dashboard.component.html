@@ -1,0 +1,87 @@
+<div class="dashboard">
+  <!-- Header -->
+  <div class="dash-header">
+    <div>
+      <h1 class="dash-title">Dashboard Predictivo</h1>
+      <p class="dash-subtitle">Inteligencia de Negocio · Forecast a 6 Meses</p>
+    </div>
+  </div>
+
+  <!-- KPI Cards -->
+  <div class="grid">
+    <div class="col-12 md:col-6 lg:col-3">
+      <div class="card kpi-card">
+        <div class="kpi-top">
+          <div class="kpi-icon-box blue"><i class="pi pi-truck"></i></div>
+          <span class="kpi-badge positive">Operativos</span>
+        </div>
+        <div class="kpi-value">{{ kpis?.totalAssets || 0 }}</div>
+        <div class="kpi-label">Total Activos</div>
+      </div>
+    </div>
+
+    <div class="col-12 md:col-6 lg:col-3">
+      <div class="card kpi-card">
+        <div class="kpi-top">
+          <div class="kpi-icon-box emerald"><i class="pi pi-file-edit"></i></div>
+          <span class="kpi-badge positive">En ejecución</span>
+        </div>
+        <div class="kpi-value">{{ kpis?.activeContracts || 0 }}</div>
+        <div class="kpi-label">Contratos Activos</div>
+      </div>
+    </div>
+
+    <div class="col-12 md:col-6 lg:col-3">
+      <div class="card kpi-card">
+        <div class="kpi-top">
+          <div class="kpi-icon-box amber"><i class="pi pi-wallet"></i></div>
+        </div>
+        <div class="kpi-value">{{ (kpis?.totalCollectedRevenue || 0) | currency:'PEN':'S/. ':'1.0-0' }}</div>
+        <div class="kpi-label">Ingresos Históricos</div>
+        <div class="kpi-sub">
+          <span class="kpi-sub-label">Esperado:</span>
+          <span class="kpi-sub-value">{{ (kpis?.totalExpectedRevenue || 0) | currency:'PEN':'S/. ':'1.0-0' }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-12 md:col-6 lg:col-3">
+      <div class="card kpi-card">
+        <div class="kpi-top">
+          <div class="kpi-icon-box rose"><i class="pi pi-exclamation-triangle"></i></div>
+          <span class="kpi-badge" [class.negative]="(kpis?.defaultRatePercentage || 0) > 10" [class.positive]="(kpis?.defaultRatePercentage || 0) <= 10">
+            {{ (kpis?.defaultRatePercentage || 0) > 10 ? 'Crítica' : 'Normal' }}
+          </span>
+        </div>
+        <div class="kpi-value" [style.color]="(kpis?.defaultRatePercentage || 0) > 10 ? '#f43f5e' : ''">
+          {{ kpis?.defaultRatePercentage || 0 }}%
+        </div>
+        <div class="kpi-label">Tasa de Morosidad</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Charts -->
+  <div class="grid mt-3">
+    <div class="col-12 lg:col-8">
+      <div class="card chart-card">
+        <div class="chart-header">
+          <h3 class="chart-title">Proyección de Ingresos</h3>
+          <span class="chart-badge">Modelo Matemático · 6 Meses</span>
+        </div>
+        <p-chart type="line" [data]="lineChartData" [options]="lineChartOptions" height="340px"></p-chart>
+      </div>
+    </div>
+
+    <div class="col-12 lg:col-4">
+      <div class="card chart-card">
+        <div class="chart-header">
+          <h3 class="chart-title">Distribución del Parque</h3>
+        </div>
+        <div class="flex justify-content-center mt-2">
+          <p-chart type="doughnut" [data]="doughnutChartData" [options]="doughnutChartOptions" height="300px"></p-chart>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,93 @@
+<div class="card p-3 m-3 surface-card border-round shadow-2">
+  <div class="flex justify-content-between align-items-center mb-3">
+    <h2>Gestión de Contratos</h2>
+    <p-button label="+ Nuevo Contrato" routerLink="/contracts/new"></p-button>
+  </div>
+
+  <p-table [value]="contracts" [loading]="loading" [paginator]="true" [rows]="10" styleClass="p-datatable-sm p-datatable-striped">
+    <ng-template pTemplate="header">
+      <tr>
+        <th pSortableColumn="contractNumber">Nro. Contrato <p-sortIcon field="contractNumber"></p-sortIcon></th>
+        <th pSortableColumn="clientName">Cliente <p-sortIcon field="clientName"></p-sortIcon></th>
+        <th pSortableColumn="contractType">Tipo <p-sortIcon field="contractType"></p-sortIcon></th>
+        <th>Relación</th>
+        <th pSortableColumn="startDate">F. Inicio <p-sortIcon field="startDate"></p-sortIcon></th>
+        <th pSortableColumn="totalAmount">Monto Total <p-sortIcon field="totalAmount"></p-sortIcon></th>
+        <th pSortableColumn="status">Estado <p-sortIcon field="status"></p-sortIcon></th>
+        <th>Acciones</th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-c>
+      <tr>
+        <td class="font-bold">{{c.contractNumber}}</td>
+        <td>{{c.clientName}}</td>
+        <td>{{c.contractType | uppercase}}</td>
+        <td>
+          <span *ngIf="c.assetCode" class="text-blue-500 mr-2"><i class="pi pi-box"></i> {{c.assetCode}}</span>
+          <span *ngIf="c.serviceName" class="text-orange-500"><i class="pi pi-wrench"></i> {{c.serviceName}}</span>
+        </td>
+        <td>{{c.startDate | date:'shortDate'}}</td>
+        <td>{{c.totalAmount | currency:'PEN':'S/. ':'1.2-2'}}</td>
+        <td><span class="p-badge p-badge-success">{{c.status | uppercase}}</span></td>
+        <td>
+          <p-button icon="pi pi-money-bill" label="Cuotas" styleClass="p-button-sm p-button-outlined" (onClick)="viewInstallments(c.contractId, c.contractNumber)"></p-button>
+        </td>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="emptymessage">
+      <tr>
+        <td colspan="8">No se encontraron contratos registrados.</td>
+      </tr>
+    </ng-template>
+  </p-table>
+</div>
+
+<!-- Modal Cuotas -->
+<p-dialog header="Cronograma de Cuotas: {{selectedContractNum}}" [(visible)]="displayInstallmentsModal" [modal]="true" [style]="{width: '100%', maxWidth: '800px'}" [breakpoints]="{ '960px': '75vw', '641px': '95vw' }">
+  <p-table [value]="selectedContractInstallments" styleClass="p-datatable-sm">
+    <ng-template pTemplate="header">
+      <tr>
+        <th>#</th>
+        <th>Fecha Venc.</th>
+        <th>Monto a Pagar</th>
+        <th>Monto Pagado</th>
+        <th>Estado</th>
+        <th>Cobro</th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-i>
+      <tr>
+        <td>{{i.installmentNumber}}</td>
+        <td [ngClass]="{'text-red-500 font-bold': i.status === 'pendiente'}">{{i.dueDate | date:'shortDate'}}</td>
+        <td>{{i.amount | currency:'PEN':'S/. '}}</td>
+        <td>{{i.paidAmount | currency:'PEN':'S/. '}}</td>
+        <td><span class="p-badge" [ngClass]="{'p-badge-success': i.status === 'pagado', 'p-badge-warning': i.status === 'pendiente', 'p-badge-info': i.status === 'parcial'}">{{i.status | uppercase}}</span></td>
+        <td>
+          <p-button icon="pi pi-wallet" label="Cobrar" styleClass="p-button-sm p-button-success" *ngIf="i.status !== 'pagado'" (onClick)="openPayment(i)"></p-button>
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+</p-dialog>
+
+<!-- Modal Pagar Cuota -->
+<p-dialog header="Registrar Pago" [(visible)]="displayPaymentModal" [modal]="true" [style]="{width: '100%', maxWidth: '450px'}" [breakpoints]="{ '960px': '75vw', '641px': '95vw' }">
+  <div class="p-fluid">
+    <div class="field">
+      <label>Monto a Abonar</label>
+      <p-inputNumber [(ngModel)]="paymentForm.amount" mode="decimal"></p-inputNumber>
+    </div>
+    <div class="field">
+      <label>Método de Pago</label>
+      <p-dropdown [options]="paymentMethods" [(ngModel)]="paymentForm.paymentMethod" appendTo="body"></p-dropdown>
+    </div>
+    <div class="field">
+      <label>Tipo Comprobante</label>
+      <p-dropdown [options]="[{label:'Boleta', value:'boleta'}, {label:'Factura', value:'factura'}]" [(ngModel)]="paymentForm.documentType" appendTo="body"></p-dropdown>
+    </div>
+  </div>
+  <ng-template pTemplate="footer">
+    <p-button label="Cancelar" icon="pi pi-times" styleClass="p-button-text" (onClick)="displayPaymentModal=false"></p-button>
+    <p-button label="Confirmar Pago y Generar PDF" icon="pi pi-file-pdf" styleClass="p-button-success" (onClick)="processPayment()"></p-button>
+  </ng-template>
+</p-dialog>

@@ -1,0 +1,39 @@
+<div class="card p-3 m-3 surface-card border-round shadow-2">
+  <div class="flex justify-content-between align-items-center mb-3">
+    <h2>Gestión de Clientes</h2>
+    <p-button label="+ Nuevo Cliente" routerLink="/clients/new"></p-button>
+  </div>
+
+  <p-table [value]="clients" [loading]="loading" [paginator]="true" [rows]="10" styleClass="p-datatable-sm p-datatable-striped">
+    <ng-template pTemplate="header">
+      <tr>
+        <th>RUC</th>
+        <th>Razón Social</th>
+        <th>Contacto</th>
+        <th>Email</th>
+        <th>Sector</th>
+        <th>Riesgo</th>
+        <th style="width: 15rem">Acciones</th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-client>
+      <tr>
+        <td>{{client.ruc}}</td>
+        <td>{{client.businessName}}</td>
+        <td>{{client.contactName}}</td>
+        <td>{{client.email}}</td>
+        <td>{{client.sector}}</td>
+        <td>{{client.riskScore !== null ? client.riskScore : 'N/E'}}</td>
+        <td>
+          <p-button icon="pi pi-pencil" styleClass="p-button-warning p-button-sm mr-2" (onClick)="goToEdit(client)"></p-button>
+          <p-button icon="pi pi-trash" styleClass="p-button-danger p-button-sm" (onClick)="deleteClient(client)"></p-button>
+        </td>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="emptymessage">
+      <tr>
+        <td colspan="7">No se encontraron clientes.</td>
+      </tr>
+    </ng-template>
+  </p-table>
+</div>

@@ -1,0 +1,219 @@
+/* ============================================================
+   PREMIUM UX/UI DESIGN SYSTEM — MaquiLease v2
+   Google Fonts: 'Inter' (body), 'Outfit' (headings)
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap');
+
+:root {
+  /* ── MODO CLARO (Stripe / Linear Style) ──────────────── */
+  --surface-a: #ffffff;
+  --surface-b: #f8fafc;
+  --surface-c: #e2e8f0;
+  --surface-d: #cbd5e1;
+  --surface-e: #ffffff;
+  --surface-f: #ffffff;
+  --text-color: #0f172a;
+  --text-color-secondary: #64748b;
+  --primary-color: #2563eb;
+  --primary-color-text: #ffffff;
+  --font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+
+  --header-bg: rgba(255, 255, 255, 0.82);
+  --sidebar-bg: #ffffff;
+  --glass-border: rgba(226, 232, 240, 0.8);
+  --glass-shadow: 0 4px 30px rgba(0, 0, 0, 0.04);
+  --card-shadow: 0 1px 3px rgba(15, 23, 42, 0.06), 0 1px 2px rgba(15, 23, 42, 0.04);
+  --card-hover-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.08);
+  --kpi-icon-bg: rgba(37, 99, 235, 0.08);
+  --nav-active-bg: rgba(37, 99, 235, 0.08);
+  --nav-active-color: #2563eb;
+}
+
+html[data-theme="dark"] {
+  /* ── MODO OSCURO (Linear Dark / Vercel) ──────────────── */
+  --surface-a: #1e293b;
+  --surface-b: #0f172a;
+  --surface-c: #334155;
+  --surface-d: #475569;
+  --surface-e: #1e293b;
+  --surface-f: #1e293b;
+  --text-color: #f1f5f9;
+  --text-color-secondary: #94a3b8;
+  --primary-color: #3b82f6;
+  --primary-color-text: #ffffff;
+  --header-bg: rgba(15, 23, 42, 0.82);
+  --sidebar-bg: #0f172a;
+  --glass-border: rgba(51, 65, 85, 0.6);
+  --glass-shadow: 0 4px 30px rgba(0, 0, 0, 0.25);
+  --card-shadow: 0 1px 3px rgba(0, 0, 0, 0.2), 0 1px 2px rgba(0, 0, 0, 0.15);
+  --card-hover-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4);
+  --kpi-icon-bg: rgba(59, 130, 246, 0.12);
+  --nav-active-bg: rgba(59, 130, 246, 0.12);
+  --nav-active-color: #60a5fa;
+}
+
+/* ── BASE ─────────────────────────────────────────────── */
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  font-family: var(--font-family);
+  background-color: var(--surface-b);
+  color: var(--text-color);
+  transition: background-color 0.3s ease, color 0.3s ease;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Outfit', var(--font-family);
+  font-weight: 600;
+  letter-spacing: -0.025em;
+  color: var(--text-color);
+}
+
+/* ── PRIMENG OVERRIDES ────────────────────────────────── */
+.p-component {
+  font-family: var(--font-family) !important;
+}
+
+/* Cards */
+.card, .p-card, .p-dialog .p-dialog-content {
+  background-color: var(--surface-a) !important;
+  border-radius: 14px !important;
+  box-shadow: var(--card-shadow) !important;
+  border: 1px solid var(--glass-border) !important;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.3s ease;
+}
+.card:hover {
+  box-shadow: var(--card-hover-shadow) !important;
+}
+
+/* Buttons */
+.p-button {
+  border-radius: 9px !important;
+  font-weight: 500 !important;
+  letter-spacing: 0.01em;
+  transition: all 0.2s ease !important;
+  font-size: 0.9rem !important;
+}
+.p-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+}
+.p-button.p-button-danger:hover {
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.25);
+}
+.p-button.p-button-success:hover {
+  box-shadow: 0 4px 12px rgba(34, 197, 94, 0.25);
+}
+
+/* Inputs */
+.p-inputtext, .p-dropdown, .p-calendar .p-inputtext {
+  border-radius: 9px !important;
+  border: 1.5px solid var(--surface-d) !important;
+  background-color: var(--surface-a) !important;
+  color: var(--text-color) !important;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease !important;
+}
+.p-inputtext:enabled:focus, .p-dropdown:not(.p-disabled).p-focus {
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1) !important;
+  border-color: var(--primary-color) !important;
+}
+
+/* Tables */
+.p-datatable .p-datatable-thead > tr > th {
+  background-color: transparent !important;
+  border-bottom: 1.5px solid var(--surface-c) !important;
+  color: var(--text-color-secondary) !important;
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 0.9rem 1rem !important;
+}
+.p-datatable .p-datatable-tbody > tr {
+  background-color: transparent !important;
+  color: var(--text-color) !important;
+  border-bottom: 1px solid var(--surface-c) !important;
+  transition: background-color 0.15s ease;
+}
+.p-datatable .p-datatable-tbody > tr:hover {
+  background-color: var(--surface-b) !important;
+}
+.p-datatable .p-datatable-tbody > tr > td {
+  border-color: var(--surface-c) !important;
+  padding: 0.85rem 1rem !important;
+}
+
+/* Stepper */
+.p-steps .p-steps-item:before {
+  border-top-color: var(--surface-d) !important;
+}
+.p-steps .p-steps-item .p-menuitem-link {
+  background: transparent !important;
+}
+.p-steps .p-steps-item .p-menuitem-link .p-steps-number {
+  background-color: var(--surface-c) !important;
+  color: var(--text-color-secondary) !important;
+  border-radius: 50% !important;
+}
+.p-steps .p-steps-item.p-highlight .p-menuitem-link .p-steps-number {
+  background-color: var(--primary-color) !important;
+  color: var(--primary-color-text) !important;
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.15);
+}
+
+/* Paginador */
+.p-paginator {
+  background-color: var(--surface-a) !important;
+  border-color: var(--surface-c) !important;
+}
+.p-paginator .p-paginator-pages .p-paginator-page,
+.p-paginator .p-paginator-first, .p-paginator .p-paginator-prev,
+.p-paginator .p-paginator-next, .p-paginator .p-paginator-last {
+  color: var(--text-color) !important;
+  background-color: transparent !important;
+}
+.p-paginator .p-paginator-pages .p-paginator-page.p-highlight {
+  background-color: var(--primary-color) !important;
+  color: var(--primary-color-text) !important;
+}
+
+/* ── LAYOUT: GLASS SIDEBAR ──────────────────────────────── */
+.glass-sidebar {
+  background-color: var(--sidebar-bg);
+  border-right: 1px solid var(--glass-border);
+  transition: background-color 0.3s ease;
+}
+
+/* ── LAYOUT: GLASS HEADER ───────────────────────────────── */
+.glass-header {
+  background: var(--header-bg) !important;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--glass-border);
+}
+
+/* ── KPI CARD ICON BOXES ─────────────────────────────────── */
+.kpi-icon-box {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.15rem;
+}
+.kpi-icon-box.blue    { background: rgba(59,130,246,0.1);  color: #3b82f6; }
+.kpi-icon-box.emerald { background: rgba(16,185,129,0.1);  color: #10b981; }
+.kpi-icon-box.amber   { background: rgba(245,158,11,0.1);  color: #f59e0b; }
+.kpi-icon-box.rose    { background: rgba(244,63,94,0.1);   color: #f43f5e; }
+
+html[data-theme="dark"] {
+  .kpi-icon-box.blue    { background: rgba(59,130,246,0.15); }
+  .kpi-icon-box.emerald { background: rgba(16,185,129,0.15); }
+  .kpi-icon-box.amber   { background: rgba(245,158,11,0.15); }
+  .kpi-icon-box.rose    { background: rgba(244,63,94,0.15);  }
+}
