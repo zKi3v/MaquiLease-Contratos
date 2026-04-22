@@ -36,4 +36,5 @@ import { HeaderComponent } from '../header/header.component';
     }
   `]
 })
-export class MainLayoutComponent {}
+export class MainLayoutComponent { }
+//prueba
