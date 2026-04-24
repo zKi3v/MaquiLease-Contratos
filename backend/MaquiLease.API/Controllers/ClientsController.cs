@@ -17,6 +17,10 @@ namespace MaquiLease.API.Controllers
             _context = context;
         }
 
+        /// <summary>
+        /// Obtiene la lista de todos los clientes que están activos.
+        /// </summary>
+        /// <returns>Una lista de ClientDto</returns>
         [HttpGet]
         public async Task<ActionResult<IEnumerable<ClientDto>>> GetClients()
         {
@@ -41,6 +45,10 @@ namespace MaquiLease.API.Controllers
             return Ok(clients);
         }
 
+        /// <summary>
+        /// Busca un cliente específico por su ID único.
+        /// </summary>
+        /// <param name="id">ID del cliente</param>
         [HttpGet("{id}")]
         public async Task<ActionResult<ClientDto>> GetClient(int id)
         {
@@ -49,6 +57,7 @@ namespace MaquiLease.API.Controllers
             if (c == null || !c.IsActive)
                 return NotFound();
 
+            // Mapeo manual de Entidad a DTO
             return new ClientDto
             {
                 ClientId = c.ClientId,
@@ -65,6 +74,10 @@ namespace MaquiLease.API.Controllers
             };
         }
 
+        /// <summary>
+        /// Registra un nuevo cliente en el sistema.
+        /// </summary>
+        /// <param name="dto">Datos del cliente a crear</param>
         [HttpPost]
         public async Task<ActionResult<ClientDto>> CreateClient(CreateClientDto dto)
         {
@@ -90,6 +103,11 @@ namespace MaquiLease.API.Controllers
             return CreatedAtAction(nameof(GetClient), new { id = client.ClientId }, dto);
         }
 
+        /// <summary>
+        /// Actualiza la información de un cliente existente.
+        /// </summary>
+        /// <param name="id">ID del cliente a modificar</param>
+        /// <param name="dto">Nuevos datos</param>
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateClient(int id, CreateClientDto dto)
         {
@@ -108,13 +126,19 @@ namespace MaquiLease.API.Controllers
             return NoContent();
         }
 
+        /// <summary>
+        /// Realiza una eliminación lógica de un cliente.
+        /// </summary>
+        /// <param name="id">ID del cliente a desactivar</param>
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteClient(int id)
         {
             var client = await _context.Clients.FindAsync(id);
             if (client == null) return NotFound();
 
-            client.IsActive = false; // Borrado lógico
+            // BORRADO LÓGICO: En lugar de eliminar el registro de la DB, 
+            // cambiamos su estado para preservar la integridad referencial.
+            client.IsActive = false; 
             await _context.SaveChangesAsync();
 
             return NoContent();
