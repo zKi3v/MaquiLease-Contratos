@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace MaquiLease.API.Models.DTOs
 {
-    public class ClientDto
+    public class ClientDto //Cliente
     {
         public int ClientId { get; set; }
         public string RUC { get; set; } = string.Empty;
