@@ -1,7 +1,8 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { AuthService } from '../../../core/services/auth.service';
 
 @Component({
   selector: 'app-login',
@@ -16,16 +17,22 @@ export class LoginComponent {
   showPassword = false;
   rememberMe = false;
   isLoading = false;
+  errorMessage = '';
 
-  constructor(private router: Router) {}
+  private router = inject(Router);
+  private authService = inject(AuthService);
 
-  onLogin() {
+  async onLogin() {
     this.isLoading = true;
+    this.errorMessage = '';
 
-    // Simulated login — redirects after a brief delay for UX polish
-    setTimeout(() => {
-      this.isLoading = false;
+    try {
+      await this.authService.login(this.email, this.password);
       this.router.navigate(['/dashboard']);
-    }, 1200);
+    } catch (error: any) {
+      this.errorMessage = error.message || 'Credenciales inválidas';
+    } finally {
+      this.isLoading = false;
+    }
   }
 }
