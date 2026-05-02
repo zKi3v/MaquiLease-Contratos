@@ -31,6 +31,24 @@ builder.Services.AddCors(options =>
         });
 });
 
+var projectId = builder.Configuration["Firebase:ProjectId"] ?? "maquilease";
+
+builder.Services.AddAuthentication(Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.Authority = $"https://securetoken.google.com/{projectId}";
+        options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidIssuer = $"https://securetoken.google.com/{projectId}",
+            ValidateAudience = true,
+            ValidAudience = projectId,
+            ValidateLifetime = true
+        };
+    });
+
+builder.Services.AddAuthorization();
+
 // ═══ Database: InMemory vs SQL Server ═══
 // Permitimos forzar InMemory via variable de entorno para el deploy de prueba en Render
 bool useInMemory = builder.Configuration.GetValue<bool>("USE_IN_MEMORY") || builder.Environment.IsDevelopment();
@@ -68,6 +86,7 @@ app.UseSwaggerUI(c =>
 app.UseCors("AllowAngularApp");
 
 // app.UseHttpsRedirection(); // Disable for docker http
+app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 

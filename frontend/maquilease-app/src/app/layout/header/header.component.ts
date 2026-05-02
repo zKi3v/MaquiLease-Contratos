@@ -2,6 +2,7 @@ import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ThemeService } from '../../core/services/theme.service';
 import { SidebarService } from '../../core/services/sidebar.service';
+import { AuthService } from '../../core/services/auth.service';
 
 @Component({
   selector: 'app-header',
@@ -14,7 +15,7 @@ import { SidebarService } from '../../core/services/sidebar.service';
         <button class="hamburger" (click)="sidebarService.toggle()">
           <i class="pi pi-bars"></i>
         </button>
-        <span class="header-greeting">¡Bienvenido, <strong>Administrador</strong></span>
+        <span class="header-greeting">¡Bienvenido, <strong>{{ authService.currentUser()?.email || 'Usuario' }}</strong></span>
       </div>
 
       <div class="header-right">
@@ -33,13 +34,12 @@ import { SidebarService } from '../../core/services/sidebar.service';
 
         <div class="header-divider hide-mobile"></div>
 
-        <div class="header-profile hide-mobile">
-          <div class="profile-avatar">AD</div>
+        <div class="header-profile hide-mobile" (click)="authService.logout()" title="Cerrar Sesión">
+          <div class="profile-avatar"><i class="pi pi-sign-out"></i></div>
           <div class="profile-info">
-            <span class="profile-name">Admin</span>
-            <span class="profile-role">Super Admin</span>
+            <span class="profile-name">Cerrar Sesión</span>
+            <span class="profile-role">Salir del sistema</span>
           </div>
-          <i class="pi pi-chevron-down profile-chevron"></i>
         </div>
       </div>
     </header>
@@ -101,14 +101,13 @@ import { SidebarService } from '../../core/services/sidebar.service';
 
     .profile-avatar {
       width: 32px; height: 32px; border-radius: 9px;
-      background: linear-gradient(135deg, #2563eb, #3b82f6);
+      background: linear-gradient(135deg, #ef4444, #b91c1c);
       color: #fff; display: flex; align-items: center; justify-content: center;
-      font-size: 0.75rem; font-weight: 700; font-family: 'Outfit', sans-serif;
+      font-size: 1rem;
     }
     .profile-info { display: flex; flex-direction: column; }
     .profile-name { font-size: 0.82rem; font-weight: 600; color: var(--text-color); line-height: 1.1; }
     .profile-role { font-size: 0.7rem; color: var(--text-color-secondary); }
-    .profile-chevron { font-size: 0.7rem; color: var(--text-color-secondary); margin-left: 2px; }
 
     /* ── MOBILE ─────────────────────────────────── */
     @media (max-width: 768px) {
@@ -125,4 +124,5 @@ import { SidebarService } from '../../core/services/sidebar.service';
 export class HeaderComponent {
   themeService = inject(ThemeService);
   sidebarService = inject(SidebarService);
+  authService = inject(AuthService);
 }
