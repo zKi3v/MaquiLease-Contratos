@@ -31,7 +31,7 @@ builder.Services.AddCors(options =>
         });
 });
 
-var projectId = "maquilease"; // O podrías leerlo del appsettings
+var projectId = builder.Configuration["Firebase:ProjectId"] ?? "maquilease";
 
 builder.Services.AddAuthentication(Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
