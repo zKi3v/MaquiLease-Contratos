@@ -1,0 +1,259 @@
+<div class="intelligence-page">
+  <div class="page-header">
+    <div>
+      <h1><i class="pi pi-lightbulb"></i> Sistema Inteligente</h1>
+      <p class="subtitle">Análisis predictivo, scoring de riesgo y recomendaciones basadas en datos</p>
+    </div>
+  </div>
+
+  <p-tabView [scrollable]="true">
+    <!-- ══════════════════════════════════════════ -->
+    <!-- TAB 1: RISK SCORE                         -->
+    <!-- ══════════════════════════════════════════ -->
+    <p-tabPanel header="Riesgo de Morosidad" leftIcon="pi pi-shield">
+      <div class="tab-content">
+        <div class="action-bar">
+          <p-dropdown
+            [options]="clients"
+            [(ngModel)]="selectedClientId"
+            placeholder="Seleccione un cliente"
+            [filter]="true"
+            filterBy="label"
+            [showClear]="true"
+            styleClass="w-full md:w-20rem">
+          </p-dropdown>
+          <p-button
+            label="Calcular Riesgo"
+            icon="pi pi-calculator"
+            (onClick)="calculateRisk()"
+            [loading]="riskLoading"
+            [disabled]="!selectedClientId">
+          </p-button>
+        </div>
+
+        <div class="risk-results" *ngIf="riskScore">
+          <div class="risk-overview">
+            <!-- Score Gauge -->
+            <div class="score-card glass-card">
+              <h3>Score de Riesgo <i class="pi pi-info-circle text-sm" style="color: var(--text-color-secondary); margin-left: 0.5rem;" pTooltip="Calculado ponderando historial de pagos (40%), días de atraso (25%), cuotas vencidas (20%) y riesgo del sector (15%). Mayor valor = Mayor riesgo." tooltipPosition="right"></i></h3>
+              <p-knob
+                [(ngModel)]="riskScore.score"
+                [readonly]="true"
+                [size]="180"
+                [min]="0"
+                [max]="100"
+                valueTemplate="{value}"
+                [valueColor]="getRiskColor(riskScore.score)"
+                [rangeColor]="themeService.isDarkMode() ? '#334155' : '#e2e8f0'">
+              </p-knob>
+              <div class="score-meta">
+                <p-tag [value]="riskScore.category" [severity]="getRiskSeverity(riskScore.category)"></p-tag>
+                <span class="client-name">{{ riskScore.clientName }}</span>
+              </div>
+            </div>
+
+            <!-- Factors Breakdown -->
+            <div class="factors-card glass-card">
+              <h3>Desglose de Factores</h3>
+              <div class="factor-list">
+                <div class="factor-item" *ngFor="let factor of riskScore.factors">
+                  <div class="factor-header">
+                    <span class="factor-name">{{ factor.name }}</span>
+                    <span class="factor-weight">Peso: {{ factor.weight }}%</span>
+                  </div>
+                  <p-progressBar
+                    [value]="factor.rawValue"
+                    [showValue]="false"
+                    [style]="{'height': '8px', 'border-radius': '4px'}">
+                  </p-progressBar>
+                  <div class="factor-detail">
+                    <span class="factor-score">{{ factor.weightedScore }} pts</span>
+                    <span class="factor-desc">{{ factor.description }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="empty-state" *ngIf="!riskScore && !riskLoading">
+          <i class="pi pi-shield"></i>
+          <p>Seleccione un cliente para calcular su score de riesgo de morosidad</p>
+        </div>
+      </div>
+    </p-tabPanel>
+
+    <!-- ══════════════════════════════════════════ -->
+    <!-- TAB 2: PRICING RECOMMENDATION             -->
+    <!-- ══════════════════════════════════════════ -->
+    <p-tabPanel header="Recomendación de Precio" leftIcon="pi pi-dollar">
+      <div class="tab-content">
+        <div class="action-bar pricing-bar">
+          <p-dropdown
+            [options]="assets"
+            [(ngModel)]="selectedAssetId"
+            placeholder="Seleccione un activo"
+            [filter]="true"
+            filterBy="label"
+            [showClear]="true"
+            styleClass="w-full md:w-18rem">
+          </p-dropdown>
+          <p-dropdown
+            [options]="clients"
+            [(ngModel)]="selectedPricingClientId"
+            placeholder="Cliente (opcional)"
+            [filter]="true"
+            filterBy="label"
+            [showClear]="true"
+            styleClass="w-full md:w-18rem">
+          </p-dropdown>
+          <p-inputNumber
+            [(ngModel)]="durationMonths"
+            [min]="1"
+            [max]="36"
+            suffix=" meses"
+            [showButtons]="true"
+            styleClass="w-8rem">
+          </p-inputNumber>
+          <p-button
+            label="Calcular Precio"
+            icon="pi pi-chart-line"
+            (onClick)="calculatePricing()"
+            [loading]="pricingLoading"
+            [disabled]="!selectedAssetId">
+          </p-button>
+        </div>
+
+        <div class="pricing-results" *ngIf="pricingResult">
+          <div class="pricing-overview">
+            <div class="price-card glass-card min-price">
+              <span class="price-label">Mínimo</span>
+              <span class="price-value">S/ {{ pricingResult.minPrice | number:'1.0-0' }}</span>
+            </div>
+            <div class="price-card glass-card suggested-price">
+              <span class="price-label">Sugerido</span>
+              <span class="price-value highlight">S/ {{ pricingResult.suggestedPrice | number:'1.0-0' }}</span>
+              <i class="pi pi-star-fill recommended-star"></i>
+            </div>
+            <div class="price-card glass-card max-price">
+              <span class="price-label">Máximo</span>
+              <span class="price-value">S/ {{ pricingResult.maxPrice | number:'1.0-0' }}</span>
+            </div>
+          </div>
+
+          <div class="pricing-explanation glass-card">
+            <h4><i class="pi pi-info-circle"></i> Análisis <i class="pi pi-question-circle text-sm" style="color: var(--text-color-secondary); margin-left: 0.5rem;" pTooltip="Precio base por depreciación y promedios de mercado, ajustado dinámicamente según el score de riesgo del cliente." tooltipPosition="right"></i></h4>
+            <p>{{ pricingResult.explanation }}</p>
+            <div class="pricing-factors">
+              <div class="pricing-factor" *ngFor="let factor of pricingResult.factors">
+                <p-tag [value]="factor.impact" [severity]="getImpactSeverity(factor.impact)" class="impact-tag"></p-tag>
+                <div>
+                  <strong>{{ factor.name }}</strong>
+                  <p>{{ factor.description }}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="empty-state" *ngIf="!pricingResult && !pricingLoading">
+          <i class="pi pi-dollar"></i>
+          <p>Seleccione un activo para obtener una recomendación de precio inteligente</p>
+        </div>
+      </div>
+    </p-tabPanel>
+
+    <!-- ══════════════════════════════════════════ -->
+    <!-- TAB 3: REVENUE FORECAST (3 BANDAS)        -->
+    <!-- ══════════════════════════════════════════ -->
+    <p-tabPanel header="Proyección de Ingresos" leftIcon="pi pi-chart-line">
+      <div class="tab-content">
+        <div class="forecast-section" *ngIf="forecast">
+          <div class="forecast-header glass-card">
+            <div class="title-with-info">
+              <h3>Proyección a 6 Meses <i class="pi pi-info-circle text-sm" style="color: var(--text-color-secondary); margin-left: 0.5rem;" pTooltip="Modelo lineal que proyecta los ingresos futuros multiplicando las cuotas programadas por la tasa de cobro histórica de la empresa." tooltipPosition="right"></i></h3>
+            </div>
+            <div class="forecast-stat mt-2">
+              <span class="stat-label">Tasa de Cobro Histórica</span>
+              <span class="stat-value">{{ forecast.historicalCollectionRate }}%</span>
+            </div>
+            <p class="forecast-summary">{{ forecast.summary }}</p>
+          </div>
+          <div class="chart-container glass-card">
+            <p-chart type="line" [data]="forecastChartData" [options]="forecastChartOptions" [style]="{'height': '380px'}"></p-chart>
+          </div>
+        </div>
+        <div class="empty-state" *ngIf="forecastLoading">
+          <i class="pi pi-spin pi-spinner"></i>
+          <p>Cargando proyección de ingresos...</p>
+        </div>
+      </div>
+    </p-tabPanel>
+
+    <!-- ══════════════════════════════════════════ -->
+    <!-- TAB 4: CLIENT SEGMENTATION                -->
+    <!-- ══════════════════════════════════════════ -->
+    <p-tabPanel header="Segmentación de Clientes" leftIcon="pi pi-users">
+      <div class="tab-content">
+        <div class="segmentation-section" *ngIf="segmentation">
+          <div class="segment-overview">
+            <div class="segment-chart glass-card">
+              <h3>Distribución por Segmento</h3>
+              <p-chart type="doughnut" [data]="segmentChartData" [options]="segmentChartOptions" [style]="{'height': '280px'}"></p-chart>
+            </div>
+            <div class="segment-summary glass-card">
+              <h3>Resumen</h3>
+              <div class="segment-counts">
+                <div class="segment-count-item" *ngFor="let entry of segmentation.segmentCounts | keyvalue">
+                  <p-tag [value]="entry.key" [severity]="getSegmentTagSeverity(entry.key)"></p-tag>
+                  <span class="count-value">{{ entry.value }} cliente{{ entry.value !== 1 ? 's' : '' }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="segment-table glass-card">
+            <p-table [value]="segmentation.clients" [paginator]="false" [rows]="10"
+                     styleClass="p-datatable-sm p-datatable-striped"
+                     [rowHover]="true">
+              <ng-template pTemplate="header">
+                <tr>
+                  <th>Cliente</th>
+                  <th>Sector</th>
+                  <th>Segmento <i class="pi pi-info-circle" pTooltip="Clasificación automática basada en Score de Riesgo y cuotas impagas." tooltipPosition="top"></i></th>
+                  <th>Score <i class="pi pi-info-circle" pTooltip="Riesgo calculado (0-100). Valores > 70 son críticos." tooltipPosition="top"></i></th>
+                  <th>Cuotas Vencidas <i class="pi pi-info-circle" pTooltip="Tener 2 o más cuotas vencidas clasifica al cliente automáticamente como Problemático, sin importar su score base." tooltipPosition="top"></i></th>
+                  <th>Valor Contratos</th>
+                  <th>Acción Sugerida</th>
+                </tr>
+              </ng-template>
+              <ng-template pTemplate="body" let-client>
+                <tr>
+                  <td><strong>{{ client.clientName }}</strong></td>
+                  <td><span class="sector-badge">{{ client.sector }}</span></td>
+                  <td><p-tag [value]="client.segment" [severity]="getSegmentTagSeverity(client.segment)"></p-tag></td>
+                  <td>
+                    <span class="risk-badge" [style.color]="getRiskColor(client.riskScore)">
+                      {{ client.riskScore }}/100
+                    </span>
+                  </td>
+                  <td>
+                    <span class="overdue-badge" [class.overdue-danger]="client.overdueInstallments >= 2">
+                      {{ client.overdueInstallments }}
+                    </span>
+                  </td>
+                  <td>S/ {{ client.totalContractValue | number:'1.0-0' }}</td>
+                  <td class="action-cell">{{ client.suggestedAction }}</td>
+                </tr>
+              </ng-template>
+            </p-table>
+          </div>
+        </div>
+        <div class="empty-state" *ngIf="segmentationLoading">
+          <i class="pi pi-spin pi-spinner"></i>
+          <p>Cargando segmentación...</p>
+        </div>
+      </div>
+    </p-tabPanel>
+  </p-tabView>
+</div>

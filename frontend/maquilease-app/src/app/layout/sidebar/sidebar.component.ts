@@ -53,6 +53,12 @@ import { SidebarService } from '../../core/services/sidebar.service';
           <div class="nav-icon"><i class="pi pi-file-edit"></i></div>
           <span>Contratos</span>
         </a>
+
+        <span class="nav-section-label mt-spacer">Inteligencia</span>
+        <a routerLink="/intelligence" routerLinkActive="active" class="nav-item" (click)="closeMobile()">
+          <div class="nav-icon"><i class="pi pi-lightbulb"></i></div>
+          <span>Sistema IA</span>
+        </a>
       </nav>
 
       <!-- Footer -->
