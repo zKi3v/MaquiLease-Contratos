@@ -1,4 +1,5 @@
 using MaquiLease.API.Data;
+using MaquiLease.API.Intelligence;
 using MaquiLease.API.Services;
 using Microsoft.EntityFrameworkCore;
 using QuestPDF.Infrastructure;
@@ -14,6 +15,7 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddScoped<PdfService>();
+builder.Services.AddScoped<IIntelligenceService, IntelligenceService>();
 
 builder.Services.AddCors(options =>
 {

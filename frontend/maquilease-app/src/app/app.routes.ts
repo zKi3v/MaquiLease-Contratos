@@ -60,6 +60,10 @@ export const routes: Routes = [
       { 
         path: 'contracts/new', 
         loadComponent: () => import('./features/contracts/contracts-create/contracts-create.component').then(m => m.ContractsCreateComponent)
+      },
+      {
+        path: 'intelligence',
+        loadComponent: () => import('./features/intelligence/intelligence-page/intelligence-page.component').then(m => m.IntelligencePageComponent)
       }
     ]
   },
