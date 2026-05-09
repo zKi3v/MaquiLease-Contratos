@@ -35,10 +35,10 @@ namespace MaquiLease.API.Models.DTOs
         public string? Email { get; set; }
         
         [MaxLength(20)]
-        public string? Phone { get; set; }
+        public string? Phone { get; set; } //telefono
         
         [MaxLength(300)]
-        public string? Address { get; set; }
+        public string? Address { get; set; } //correo
         
         [MaxLength(50)]
         public string? Sector { get; set; }
