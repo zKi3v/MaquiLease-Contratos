@@ -66,6 +66,10 @@ else
         options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 }
 
+// Register Background Jobs
+builder.Services.AddHostedService<MaquiLease.API.BackgroundJobs.DueDateMonitorJob>();
+builder.Services.AddHostedService<MaquiLease.API.BackgroundJobs.RiskScoreRecalcJob>();
+
 var app = builder.Build();
 
 // ═══ Seed data ═══

@@ -64,6 +64,10 @@ export const routes: Routes = [
       {
         path: 'intelligence',
         loadComponent: () => import('./features/intelligence/intelligence-page/intelligence-page.component').then(m => m.IntelligencePageComponent)
+      },
+      {
+        path: 'alerts',
+        loadComponent: () => import('./features/alerts/alerts-page/alerts-page.component').then(m => m.AlertsPageComponent)
       }
     ]
   },
