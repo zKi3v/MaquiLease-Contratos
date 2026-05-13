@@ -22,4 +22,16 @@ namespace MaquiLease.API.Models.DTOs
         public int Rented { get; set; }
         public int Maintenance { get; set; }
     }
+
+    public class MonthlyOverdueDto
+    {
+        public required string Month { get; set; }
+        public decimal OverdueRate { get; set; }
+    }
+
+    public class ContractDistributionDto
+    {
+        public Dictionary<string, int> ByStatus { get; set; } = new();
+        public Dictionary<string, int> ByType { get; set; } = new();
+    }
 }

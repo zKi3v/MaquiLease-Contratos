@@ -61,7 +61,7 @@
     </div>
   </div>
 
-  <!-- Charts -->
+  <!-- Charts Row 1 -->
   <div class="grid mt-3">
     <div class="col-12 lg:col-8">
       <div class="card chart-card">
@@ -81,6 +81,38 @@
         <div class="flex justify-content-center mt-2">
           <p-chart type="doughnut" [data]="doughnutChartData" [options]="doughnutChartOptions" height="300px"></p-chart>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Charts Row 2 -->
+  <div class="grid mt-3">
+    <div class="col-12 lg:col-4">
+      <div class="card chart-card">
+        <div class="chart-header">
+          <h3 class="chart-title">Tasa de Morosidad (12 Meses)</h3>
+        </div>
+        <p-chart type="bar" [data]="overdueBarChartData" [options]="overdueBarChartOptions" height="300px"></p-chart>
+      </div>
+    </div>
+
+    <div class="col-12 lg:col-4">
+      <div class="card chart-card">
+        <div class="chart-header">
+          <h3 class="chart-title">Contratos por Tipo</h3>
+        </div>
+        <div class="flex justify-content-center mt-2">
+          <p-chart type="pie" [data]="contractPieChartData" [options]="contractPieChartOptions" height="280px"></p-chart>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-12 lg:col-4">
+      <div class="card chart-card">
+        <div class="chart-header">
+          <h3 class="chart-title">Segmentación de Clientes</h3>
+        </div>
+        <p-chart type="bar" [data]="segmentBarChartData" [options]="segmentBarChartOptions" height="300px"></p-chart>
       </div>
     </div>
   </div>

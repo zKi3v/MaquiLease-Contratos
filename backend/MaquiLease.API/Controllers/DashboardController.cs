@@ -1,3 +1,4 @@
+using MaquiLease.API.Intelligence;
 using MaquiLease.API.Data;
 using MaquiLease.API.Models.DTOs;
 using Microsoft.AspNetCore.Authorization;
@@ -16,10 +17,12 @@ namespace MaquiLease.API.Controllers
     public class DashboardController : ControllerBase
     {
         private readonly AppDbContext _context;
+        private readonly IIntelligenceService _intelligenceService;
 
-        public DashboardController(AppDbContext context)
+        public DashboardController(AppDbContext context, IIntelligenceService intelligenceService)
         {
             _context = context;
+            _intelligenceService = intelligenceService;
         }
 
         [HttpGet("kpis")]
@@ -121,6 +124,71 @@ namespace MaquiLease.API.Controllers
             }
 
             return Ok(forecast);
+        }
+
+        [HttpGet("overdue-rate")]
+        public async Task<ActionResult<IEnumerable<MonthlyOverdueDto>>> GetOverdueRate()
+        {
+            var result = new List<MonthlyOverdueDto>();
+            var now = DateTime.UtcNow;
+            string[] monthsNames = { "", "Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic" };
+
+            // We calculate over the last 12 months
+            for (int i = 11; i >= 0; i--)
+            {
+                var targetMonth = now.AddMonths(-i);
+                var startDate = new DateTime(targetMonth.Year, targetMonth.Month, 1);
+                var endDate = startDate.AddMonths(1).AddDays(-1);
+
+                // Cuotas que vencían en ese mes
+                var installmentsInMonth = await _context.Installments
+                    .Where(inst => inst.DueDate >= startDate && inst.DueDate <= endDate)
+                    .ToListAsync();
+
+                int totalInstallments = installmentsInMonth.Count;
+                int lateInstallments = installmentsInMonth.Count(inst => 
+                    inst.Status == "vencido" || 
+                    (inst.Status == "pagado" && inst.PaidDate.HasValue && inst.PaidDate.Value > inst.DueDate));
+
+                decimal rate = totalInstallments > 0 
+                    ? Math.Round(((decimal)lateInstallments / totalInstallments) * 100, 2) 
+                    : 0;
+
+                result.Add(new MonthlyOverdueDto
+                {
+                    Month = $"{monthsNames[targetMonth.Month]} {targetMonth:yy}",
+                    OverdueRate = rate
+                });
+            }
+
+            return Ok(result);
+        }
+
+        [HttpGet("contract-distribution")]
+        public async Task<ActionResult<ContractDistributionDto>> GetContractDistribution()
+        {
+            var contracts = await _context.Contracts.ToListAsync();
+
+            var byStatus = contracts
+                .GroupBy(c => c.Status)
+                .ToDictionary(g => g.Key, g => g.Count());
+
+            var byType = contracts
+                .GroupBy(c => c.ContractType)
+                .ToDictionary(g => g.Key, g => g.Count());
+
+            return Ok(new ContractDistributionDto
+            {
+                ByStatus = byStatus,
+                ByType = byType
+            });
+        }
+
+        [HttpGet("client-segments")]
+        public async Task<ActionResult<SegmentationSummaryDto>> GetClientSegments()
+        {
+            var summary = await _intelligenceService.SegmentClients();
+            return Ok(summary);
         }
     }
 }

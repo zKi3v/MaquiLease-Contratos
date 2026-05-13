@@ -1,0 +1,46 @@
+<p-toast></p-toast>
+<div class="alerts-container">
+  <div class="header">
+    <h1 class="title">Centro de Notificaciones</h1>
+    <p class="subtitle">Monitoreo de Vencimientos y Riesgos Automáticos</p>
+  </div>
+
+  <div class="card">
+    <p-table [value]="alerts" [loading]="loading" [paginator]="true" [rows]="10" [responsive]="true" styleClass="p-datatable-sm">
+      <ng-template pTemplate="header">
+        <tr>
+          <th>Fecha</th>
+          <th>Contrato</th>
+          <th>Cuota</th>
+          <th>Tipo</th>
+          <th>Mensaje</th>
+          <th>Estado</th>
+          <th>Acción</th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-alert>
+        <tr [ngClass]="{'unread-row': !alert.isRead}">
+          <td>{{ alert.sentAt | date:'short' }}</td>
+          <td><span class="p-column-title">Contrato</span>{{ alert.contractNumber }}</td>
+          <td><span class="p-column-title">Cuota</span>{{ alert.installmentNumber || '-' }}</td>
+          <td>
+            <p-tag [severity]="getSeverity(alert.alertType)" [value]="getAlertLabel(alert.alertType)"></p-tag>
+          </td>
+          <td style="max-width: 300px; white-space: normal;">{{ alert.message }}</td>
+          <td>
+            <span *ngIf="alert.isRead" class="status-read"><i class="pi pi-check"></i> Leída</span>
+            <span *ngIf="!alert.isRead" class="status-unread"><i class="pi pi-bell"></i> Nueva</span>
+          </td>
+          <td>
+            <button *ngIf="!alert.isRead" pButton pRipple icon="pi pi-check" class="p-button-rounded p-button-success p-button-text" (click)="markAsRead(alert)" pTooltip="Marcar como leída"></button>
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="7" class="text-center p-4">No hay alertas registradas en el sistema.</td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
+</div>
