@@ -30,7 +30,10 @@
         <td>{{c.totalAmount | currency:'PEN':'S/. ':'1.2-2'}}</td>
         <td><span class="p-badge p-badge-success">{{c.status | uppercase}}</span></td>
         <td>
-          <p-button icon="pi pi-money-bill" label="Cuotas" styleClass="p-button-sm p-button-outlined" (onClick)="viewInstallments(c.contractId, c.contractNumber)"></p-button>
+          <div class="flex gap-2">
+            <p-button icon="pi pi-eye" label="Ver Detalle" styleClass="p-button-sm p-button-outlined p-button-info" [routerLink]="['/contracts', c.contractId]"></p-button>
+            <p-button icon="pi pi-money-bill" label="Cuotas" styleClass="p-button-sm p-button-outlined" (onClick)="viewInstallments(c.contractId, c.contractNumber)"></p-button>
+          </div>
         </td>
       </tr>
     </ng-template>

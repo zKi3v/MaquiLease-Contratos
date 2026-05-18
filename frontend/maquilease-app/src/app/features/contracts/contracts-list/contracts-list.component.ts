@@ -78,9 +78,22 @@ export class ContractsListComponent implements OnInit {
   processPayment() {
     this.paymentService.registerPayment(this.paymentForm).subscribe((res: any) => {
       this.displayPaymentModal = false;
-      // Download PDF receipt
-      window.open(this.paymentService.downloadReceiptUrl(res.paymentId), '_blank');
-      // Refresh installaments
+      
+      // Download PDF receipt dynamically as Blob
+      this.paymentService.downloadReceipt(res.paymentId).subscribe({
+        next: (blob: Blob) => {
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `Recibo_Pago_${res.paymentId}.pdf`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          window.URL.revokeObjectURL(url);
+        }
+      });
+
+      // Refresh installments
       this.displayInstallmentsModal = false;
       this.loadContracts();
     });
