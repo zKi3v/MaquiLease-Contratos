@@ -1,4 +1,5 @@
 using MaquiLease.API.Data;
+using MaquiLease.API.Intelligence;
 using MaquiLease.API.Services;
 using Microsoft.EntityFrameworkCore;
 using QuestPDF.Infrastructure;
@@ -14,6 +15,7 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddScoped<PdfService>();
+builder.Services.AddScoped<IIntelligenceService, IntelligenceService>();
 
 builder.Services.AddCors(options =>
 {
@@ -31,6 +33,24 @@ builder.Services.AddCors(options =>
         });
 });
 
+var projectId = builder.Configuration["Firebase:ProjectId"] ?? "maquilease";
+
+builder.Services.AddAuthentication(Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.Authority = $"https://securetoken.google.com/{projectId}";
+        options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidIssuer = $"https://securetoken.google.com/{projectId}",
+            ValidateAudience = true,
+            ValidAudience = projectId,
+            ValidateLifetime = true
+        };
+    });
+
+builder.Services.AddAuthorization();
+
 // ═══ Database: InMemory vs SQL Server ═══
 // Permitimos forzar InMemory via variable de entorno para el deploy de prueba en Render
 bool useInMemory = builder.Configuration.GetValue<bool>("USE_IN_MEMORY") || builder.Environment.IsDevelopment();
@@ -45,6 +65,10 @@ else
     builder.Services.AddDbContext<AppDbContext>(options =>
         options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 }
+
+// Register Background Jobs
+builder.Services.AddHostedService<MaquiLease.API.BackgroundJobs.DueDateMonitorJob>();
+builder.Services.AddHostedService<MaquiLease.API.BackgroundJobs.RiskScoreRecalcJob>();
 
 var app = builder.Build();
 
@@ -68,6 +92,7 @@ app.UseSwaggerUI(c =>
 app.UseCors("AllowAngularApp");
 
 // app.UseHttpsRedirection(); // Disable for docker http
+app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 

@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { MainLayoutComponent } from './layout/main-layout/main-layout.component';
+import { authGuard } from './core/guards/auth.guard';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
@@ -10,6 +11,7 @@ export const routes: Routes = [
   {
     path: '',
     component: MainLayoutComponent,
+    canActivate: [authGuard],
     children: [
       {
         path: 'dashboard',
@@ -58,6 +60,14 @@ export const routes: Routes = [
       { 
         path: 'contracts/new', 
         loadComponent: () => import('./features/contracts/contracts-create/contracts-create.component').then(m => m.ContractsCreateComponent)
+      },
+      {
+        path: 'intelligence',
+        loadComponent: () => import('./features/intelligence/intelligence-page/intelligence-page.component').then(m => m.IntelligencePageComponent)
+      },
+      {
+        path: 'alerts',
+        loadComponent: () => import('./features/alerts/alerts-page/alerts-page.component').then(m => m.AlertsPageComponent)
       }
     ]
   },

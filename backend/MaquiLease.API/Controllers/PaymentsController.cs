@@ -1,6 +1,8 @@
 using MaquiLease.API.Data;
 using MaquiLease.API.Models.DTOs;
 using MaquiLease.API.Models.Entities;
+using MaquiLease.API.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -8,6 +10,7 @@ namespace MaquiLease.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class PaymentsController : ControllerBase
     {
         private readonly AppDbContext _context;

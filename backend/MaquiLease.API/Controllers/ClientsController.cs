@@ -1,6 +1,8 @@
 using MaquiLease.API.Data;
+using MaquiLease.API.Intelligence;
 using MaquiLease.API.Models.DTOs;
 using MaquiLease.API.Models.Entities;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -8,13 +10,16 @@ namespace MaquiLease.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class ClientsController : ControllerBase
     {
         private readonly AppDbContext _context;
+        private readonly IIntelligenceService _intelligence;
 
-        public ClientsController(AppDbContext context)
+        public ClientsController(AppDbContext context, IIntelligenceService intelligence)
         {
             _context = context;
+            _intelligence = intelligence;
         }
 
         /// <summary>
@@ -72,6 +77,20 @@ namespace MaquiLease.API.Controllers
                 CreatedAt = c.CreatedAt,
                 IsActive = c.IsActive
             };
+        }
+
+        [HttpGet("{id}/risk-score")]
+        public async Task<ActionResult<RiskScoreDto>> GetRiskScore(int id)
+        {
+            try
+            {
+                var result = await _intelligence.CalculateRiskScore(id);
+                return Ok(result);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
         }
 
         /// <summary>
@@ -145,3 +164,4 @@ namespace MaquiLease.API.Controllers
         }
     }
 }
+

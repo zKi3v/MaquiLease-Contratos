@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { ApiService } from './api.service';
+import { SegmentationSummary } from './intelligence.service';
 
 export interface DashboardKpi {
   totalAssets: number;
@@ -22,6 +23,16 @@ export interface AssetDistribution {
   maintenance: number;
 }
 
+export interface MonthlyOverdue {
+  month: string;
+  overdueRate: number;
+}
+
+export interface ContractDistribution {
+  byStatus: { [key: string]: number };
+  byType: { [key: string]: number };
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -38,5 +49,17 @@ export class DashboardService {
 
   getAssetStatus(): Observable<AssetDistribution> {
     return this.api.get<AssetDistribution>('dashboard/asset-status');
+  }
+
+  getOverdueRate(): Observable<MonthlyOverdue[]> {
+    return this.api.get<MonthlyOverdue[]>('dashboard/overdue-rate');
+  }
+
+  getContractDistribution(): Observable<ContractDistribution> {
+    return this.api.get<ContractDistribution>('dashboard/contract-distribution');
+  }
+
+  getClientSegments(): Observable<SegmentationSummary> {
+    return this.api.get<SegmentationSummary>('dashboard/client-segments');
   }
 }
