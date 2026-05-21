@@ -63,6 +63,20 @@ html[data-theme="dark"] .p-card {
 
 .pricing-bar {
   flex-wrap: wrap;
+
+  ::ng-deep {
+    .p-inputnumber {
+      width: 100%;
+
+      @media (min-width: 768px) {
+        width: 12rem !important;
+      }
+
+      .p-inputnumber-input {
+        width: 100%;
+      }
+    }
+  }
 }
 
 // ══════════════════════════════════════════════════
