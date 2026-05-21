@@ -74,5 +74,35 @@ namespace MaquiLease.API.Controllers
             var result = await _intelligence.SegmentClients();
             return Ok(result);
         }
+
+        /// <summary>
+        /// Obtiene el análisis de salud y mantenimiento predictivo para todos los activos.
+        /// </summary>
+        [HttpGet("asset-health")]
+        public async Task<ActionResult<List<AssetHealthDto>>> GetAssetHealth()
+        {
+            var result = await _intelligence.GetAssetHealthAnalysis();
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// Genera recomendaciones de matchmaker para activos disponibles y clientes estables.
+        /// </summary>
+        [HttpGet("matchmaker")]
+        public async Task<ActionResult<List<MatchmakerRecommendationDto>>> GetMatchmaker()
+        {
+            var result = await _intelligence.GetMatchmakerRecommendations();
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// Simula el score de riesgo del cliente basado en parámetros hipotéticos de contrato (What-If).
+        /// </summary>
+        [HttpPost("simulate")]
+        public async Task<ActionResult<SimulatedRiskDto>> SimulateRisk([FromBody] RiskSimulationRequestDto request)
+        {
+            var result = await _intelligence.SimulateRiskScore(request);
+            return Ok(result);
+        }
     }
 }

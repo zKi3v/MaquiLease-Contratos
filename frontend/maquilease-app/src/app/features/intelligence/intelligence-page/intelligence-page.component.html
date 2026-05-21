@@ -20,14 +20,18 @@
             [filter]="true"
             filterBy="label"
             [showClear]="true"
-            styleClass="w-full md:w-20rem">
+            styleClass="w-full md:w-20rem"
+            pTooltip="Seleccione un cliente para predecir su nivel de riesgo crediticio."
+            tooltipPosition="top">
           </p-dropdown>
           <p-button
             label="Calcular Riesgo"
             icon="pi pi-calculator"
             (onClick)="calculateRisk()"
             [loading]="riskLoading"
-            [disabled]="!selectedClientId">
+            [disabled]="!selectedClientId"
+            pTooltip="Procesa el modelo predictivo de riesgo comercial."
+            tooltipPosition="top">
           </p-button>
         </div>
 
@@ -96,7 +100,9 @@
             [filter]="true"
             filterBy="label"
             [showClear]="true"
-            styleClass="w-full md:w-18rem">
+            styleClass="w-full md:w-18rem"
+            pTooltip="Seleccione el activo de inventario para cotizar."
+            tooltipPosition="top">
           </p-dropdown>
           <p-dropdown
             [options]="clients"
@@ -105,7 +111,9 @@
             [filter]="true"
             filterBy="label"
             [showClear]="true"
-            styleClass="w-full md:w-18rem">
+            styleClass="w-full md:w-18rem"
+            pTooltip="(Opcional) Ajusta la tarifa sugerida según el nivel de riesgo de este cliente."
+            tooltipPosition="top">
           </p-dropdown>
           <p-inputNumber
             [(ngModel)]="durationMonths"
@@ -113,29 +121,33 @@
             [max]="36"
             suffix=" meses"
             [showButtons]="true"
-            styleClass="w-full md:w-12rem">
+            styleClass="w-full md:w-12rem"
+            pTooltip="Plazo del contrato propuesto en meses (plazos >= 12 meses aplican descuento)."
+            tooltipPosition="top">
           </p-inputNumber>
           <p-button
             label="Calcular Precio"
             icon="pi pi-chart-line"
             (onClick)="calculatePricing()"
             [loading]="pricingLoading"
-            [disabled]="!selectedAssetId">
+            [disabled]="!selectedAssetId"
+            pTooltip="Estima el rango de precios recomendado."
+            tooltipPosition="top">
           </p-button>
         </div>
 
         <div class="pricing-results" *ngIf="pricingResult">
           <div class="pricing-overview">
-            <div class="price-card glass-card min-price">
+            <div class="price-card glass-card min-price" pTooltip="Tarifa mínima recomendada para mantener márgenes comerciales." tooltipPosition="top">
               <span class="price-label">Mínimo</span>
               <span class="price-value">S/ {{ pricingResult.minPrice | number:'1.0-0' }}</span>
             </div>
-            <div class="price-card glass-card suggested-price">
+            <div class="price-card glass-card suggested-price" pTooltip="Tarifa ideal sugerida por la IA optimizando retornos y riesgo." tooltipPosition="top">
               <span class="price-label">Sugerido</span>
               <span class="price-value highlight">S/ {{ pricingResult.suggestedPrice | number:'1.0-0' }}</span>
               <i class="pi pi-star-fill recommended-star"></i>
             </div>
-            <div class="price-card glass-card max-price">
+            <div class="price-card glass-card max-price" pTooltip="Tarifa tope sugerida de mercado para mantener la competitividad comercial." tooltipPosition="top">
               <span class="price-label">Máximo</span>
               <span class="price-value">S/ {{ pricingResult.maxPrice | number:'1.0-0' }}</span>
             </div>
@@ -173,7 +185,7 @@
             <div class="title-with-info">
               <h3>Proyección a 6 Meses <i class="pi pi-info-circle text-sm" style="color: var(--text-color-secondary); margin-left: 0.5rem;" pTooltip="Modelo lineal que proyecta los ingresos futuros multiplicando las cuotas programadas por la tasa de cobro histórica de la empresa." tooltipPosition="right"></i></h3>
             </div>
-            <div class="forecast-stat mt-2">
+            <div class="forecast-stat mt-2" pTooltip="Porcentaje acumulado de cuotas cobradas con éxito sobre el total de vencimientos." tooltipPosition="top">
               <span class="stat-label">Tasa de Cobro Histórica</span>
               <span class="stat-value">{{ forecast.historicalCollectionRate }}%</span>
             </div>
@@ -198,11 +210,11 @@
         <div class="segmentation-section" *ngIf="segmentation">
           <div class="segment-overview">
             <div class="segment-chart glass-card">
-              <h3>Distribución por Segmento</h3>
+              <h3>Distribución por Segmento <i class="pi pi-info-circle text-xs" style="color: var(--text-color-secondary); margin-left: 0.5rem;" pTooltip="División porcentual de nuestra cartera según riesgo crediticio." tooltipPosition="right"></i></h3>
               <p-chart type="doughnut" [data]="segmentChartData" [options]="segmentChartOptions" height="280px"></p-chart>
             </div>
             <div class="segment-summary glass-card">
-              <h3>Resumen</h3>
+              <h3>Resumen <i class="pi pi-info-circle text-xs" style="color: var(--text-color-secondary); margin-left: 0.5rem;" pTooltip="Cantidad total de clientes en cada segmento." tooltipPosition="left"></i></h3>
               <div class="segment-counts">
                 <div class="segment-count-item" *ngFor="let entry of segmentation.segmentCounts | keyvalue">
                   <p-tag [value]="entry.key" [severity]="getSegmentTagSeverity(entry.key)"></p-tag>
@@ -252,6 +264,233 @@
         <div class="empty-state" *ngIf="segmentationLoading">
           <i class="pi pi-spin pi-spinner"></i>
           <p>Cargando segmentación...</p>
+        </div>
+      </div>
+    </p-tabPanel>
+
+    <!-- ══════════════════════════════════════════ -->
+    <!-- TAB 5: ASSET HEALTH                       -->
+    <!-- ══════════════════════════════════════════ -->
+    <p-tabPanel header="Salud de Activos" leftIcon="pi pi-heart">
+      <div class="tab-content">
+        <div class="asset-health-section" *ngIf="!healthLoading && assetHealths.length > 0">
+          <div class="glass-card mb-4 header-tip">
+            <h3><i class="pi pi-info-circle text-primary"></i> Mantenimiento Predictivo IA</h3>
+            <p class="subtitle text-sm">Nuestro motor estima el desgaste estructural de los activos calculando antigüedad, depreciación comercial, contratos previos y alertas activas. Evita fallas en obra agendando revisiones tempranas.</p>
+          </div>
+          
+          <div class="glass-card">
+            <p-table [value]="assetHealths" [paginator]="true" [rows]="10" styleClass="p-datatable-sm p-datatable-striped" [rowHover]="true">
+              <ng-template pTemplate="header">
+                <tr>
+                  <th>Código</th>
+                  <th>Activo</th>
+                  <th>Categoría</th>
+                  <th>Salud Operacional (Health Index) <i class="pi pi-info-circle text-xs" pTooltip="Estimado según antigüedad, contratos previos, depreciación y alertas activas." tooltipPosition="top"></i></th>
+                  <th>Contratos <i class="pi pi-info-circle text-xs" pTooltip="Cantidad de arriendos previos asociados a esta maquinaria." tooltipPosition="top"></i></th>
+                  <th>Estado <i class="pi pi-info-circle text-xs" pTooltip="Estado de disponibilidad actual en almacenes o en obra." tooltipPosition="top"></i></th>
+                  <th>Recomendación Predictiva IA <i class="pi pi-info-circle text-xs" pTooltip="Plan de acción preventivo sugerido automáticamente por el sistema." tooltipPosition="top"></i></th>
+                </tr>
+              </ng-template>
+              <ng-template pTemplate="body" let-asset>
+                <tr>
+                  <td><code>{{ asset.assetCode }}</code></td>
+                  <td><strong>{{ asset.assetName }}</strong></td>
+                  <td><span class="sector-badge">{{ asset.category }}</span></td>
+                  <td>
+                    <div class="health-index-wrapper">
+                      <span class="health-score" [style.color]="getHealthColor(asset.healthIndex)">{{ asset.healthIndex }}%</span>
+                      <p-progressBar [value]="asset.healthIndex" [showValue]="false" [style]="{'height': '8px', 'width': '120px', 'border-radius': '4px'}"></p-progressBar>
+                    </div>
+                  </td>
+                  <td>
+                    <span class="contracts-badge">{{ asset.contractsCount }} arriendos</span>
+                  </td>
+                  <td>
+                    <p-tag [value]="asset.status === 'disponible' ? 'Disponible' : (asset.status === 'alquilado' ? 'Alquilado' : 'Mantenimiento')"
+                           [severity]="asset.status === 'disponible' ? 'success' : (asset.status === 'alquilado' ? 'info' : 'danger')"></p-tag>
+                  </td>
+                  <td>
+                    <div class="recommendation-cell" [class.recommendation-danger]="asset.healthIndex <= 40" [class.recommendation-warning]="asset.healthIndex > 40 && asset.healthIndex <= 75">
+                      <i class="pi" [class.pi-exclamation-triangle]="asset.healthIndex <= 75" [class.pi-check-circle]="asset.healthIndex > 75"></i>
+                      <span>{{ asset.recommendation }}</span>
+                    </div>
+                  </td>
+                </tr>
+              </ng-template>
+            </p-table>
+          </div>
+        </div>
+
+        <div class="empty-state" *ngIf="healthLoading">
+          <i class="pi pi-spin pi-spinner"></i>
+          <p>Analizando la salud operativa de las maquinarias...</p>
+        </div>
+      </div>
+    </p-tabPanel>
+
+    <!-- ══════════════════════════════════════════ -->
+    <!-- TAB 6: SMART MATCHMAKER                   -->
+    <!-- ══════════════════════════════════════════ -->
+    <p-tabPanel header="Matchmaker de Inventario" leftIcon="pi pi-sparkles">
+      <div class="tab-content">
+        <div class="matchmaker-section" *ngIf="!matchmakerLoading && matchmakerRecs.length > 0">
+          <div class="glass-card mb-4 header-tip">
+            <h3><i class="pi pi-info-circle text-primary"></i> Motor de Cross-Selling Inteligente</h3>
+            <p class="subtitle text-sm">Cruza automáticamente la maquinaria en inventario libre (disponible) con los perfiles comerciales de clientes estables. Identifica oportunidades de arrendamiento altamente probables y sugiere tarifas optimizadas.</p>
+          </div>
+
+          <div class="matchmaker-grid">
+            <div class="matchmaker-card glass-card" *ngFor="let rec of matchmakerRecs">
+              <div class="card-glow"></div>
+              <div class="card-header">
+                <div class="client-info">
+                  <span class="sector-badge mb-1">{{ rec.sector }}</span>
+                  <h4>{{ rec.clientName }}</h4>
+                </div>
+                <div class="affinity-badge-wrapper" pTooltip="Score de compatibilidad comercial estimado entre el activo disponible y el cliente." tooltipPosition="top">
+                  <span class="affinity-val" [style.color]="getAffinityColor(rec.affinityScore)">{{ rec.affinityScore }}%</span>
+                  <span class="affinity-label">Afinidad</span>
+                </div>
+              </div>
+
+              <div class="card-body">
+                <div class="asset-match-info">
+                  <span class="asset-cat">{{ rec.assetCategory }}</span>
+                  <h5><i class="pi pi-box"></i> {{ rec.assetName }}</h5>
+                </div>
+
+                <div class="pricing-match" pTooltip="Tarifa de arrendamiento mensual recomendada por la IA optimizando retornos y riesgo." tooltipPosition="top">
+                  <span class="price-lbl">Tarifa Sugerida</span>
+                  <span class="price-val">S/ {{ rec.suggestedMonthlyRate | number:'1.0-0' }} <small>/ mes</small></span>
+                </div>
+
+                <p class="reasoning-text"><i class="pi pi-comment"></i> {{ rec.reasoning }}</p>
+              </div>
+
+              <div class="card-footer">
+                <p-tag [value]="'Confianza ' + rec.confidenceLevel" [severity]="getConfidenceSeverity(rec.confidenceLevel)" pTooltip="Grado de seguridad de la propuesta considerando afinidad del sector y score de riesgo del cliente." tooltipPosition="top"></p-tag>
+                <button pButton label="Crear Propuesta" icon="pi pi-plus" class="p-button-sm p-button-outlined"></button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="empty-state" *ngIf="matchmakerLoading">
+          <i class="pi pi-spin pi-spinner"></i>
+          <p>Buscando oportunidades de arrendamiento y afinidades...</p>
+        </div>
+
+        <div class="empty-state" *ngIf="!matchmakerLoading && matchmakerRecs.length === 0">
+          <i class="pi pi-check-circle"></i>
+          <p>No se encontraron recomendaciones. Actualmente no hay activos disponibles o todos los clientes estables ya están cubiertos.</p>
+        </div>
+      </div>
+    </p-tabPanel>
+
+    <!-- ══════════════════════════════════════════ -->
+    <!-- TAB 7: CREDIT SIMULATOR                   -->
+    <!-- ══════════════════════════════════════════ -->
+    <p-tabPanel header="Simulador 'What-If'" leftIcon="pi pi-sliders-h">
+      <div class="tab-content">
+        <div class="glass-card mb-4 header-tip">
+          <h3><i class="pi pi-sliders-h text-primary"></i> Sandbox de Evaluación Crediticia</h3>
+          <p class="subtitle text-sm">Modifique dinámicamente las condiciones financieras propuestas para predecir al instante el nivel de riesgo del contrato y recibir recomendaciones automáticas de mitigación de la IA.</p>
+        </div>
+
+        <div class="simulator-layout">
+          <!-- Columna Izquierda: Sliders y Parámetros -->
+          <div class="simulator-inputs glass-card">
+            <h4><i class="pi pi-cog"></i> Condiciones del Contrato</h4>
+            
+            <div class="input-group mb-3" pTooltip="El sector influye en la tasa histórica de mora (ej: Construcción suele registrar mayor volatilidad)." tooltipPosition="right">
+              <label class="block font-medium mb-1">Sector Económico del Cliente</label>
+              <p-dropdown
+                [options]="sectors"
+                [(ngModel)]="simSector"
+                (onChange)="runSimulation()"
+                styleClass="w-full">
+              </p-dropdown>
+            </div>
+
+            <div class="input-group mb-3" pTooltip="Monto total del contrato o valor del activo a arrendar. Influye en la exposición financiera global." tooltipPosition="right">
+              <div class="input-group-header flex justify-content-between mb-1">
+                <label class="font-medium">Monto Total a Financiar</label>
+                <span class="input-val font-bold">S/ {{ simTotalAmount | number:'1.0-0' }}</span>
+              </div>
+              <p-slider [(ngModel)]="simTotalAmount" [min]="5000" [max]="500000" [step]="5000" (onChange)="runSimulation()"></p-slider>
+              <span class="range-hint block text-xs mt-1 text-color-secondary">Rango: S/ 5,000 a S/ 500,000</span>
+            </div>
+
+            <div class="input-group mb-3" pTooltip="Monto aportado por el cliente al inicio. Un mayor abono reduce el saldo financiado y mitiga el riesgo de pérdida." tooltipPosition="right">
+              <div class="input-group-header flex justify-content-between mb-1">
+                <label class="font-medium">Abono Inicial (Cuota Inicial)</label>
+                <span class="input-val font-bold">S/ {{ simDownPayment | number:'1.0-0' }} ({{ (simDownPayment / (simTotalAmount > 0 ? simTotalAmount : 1)) * 100 | number:'1.0-0' }}%)</span>
+              </div>
+              <p-slider [(ngModel)]="simDownPayment" [min]="0" [max]="simTotalAmount * 0.5" [step]="1000" (onChange)="runSimulation()"></p-slider>
+              <span class="range-hint block text-xs mt-1 text-color-secondary">Máx: S/ {{ simTotalAmount * 0.5 | number:'1.0-0' }} (50% del total)</span>
+            </div>
+
+            <div class="input-group mb-3" pTooltip="Duración del contrato. Plazos más largos incrementan la exposición temporal al riesgo crediticio." tooltipPosition="right">
+              <div class="input-group-header flex justify-content-between mb-1">
+                <label class="font-medium">Plazo del Contrato</label>
+                <span class="input-val font-bold">{{ simInstallmentsCount }} meses</span>
+              </div>
+              <p-slider [(ngModel)]="simInstallmentsCount" [min]="3" [max]="36" [step]="1" (onChange)="runSimulation()"></p-slider>
+              <span class="range-hint block text-xs mt-1 text-color-secondary">Rango: 3 a 36 meses</span>
+            </div>
+
+            <div class="input-group mb-3" pTooltip="Tasa porcentual simulada de cuotas pagadas a tiempo." tooltipPosition="right">
+              <div class="input-group-header flex justify-content-between mb-1">
+                <label class="font-medium">Historial Estimado de Pagos a Tiempo</label>
+                <span class="input-val font-bold">{{ simOnTimePaymentRate }}%</span>
+              </div>
+              <p-slider [(ngModel)]="simOnTimePaymentRate" [min]="0" [max]="100" [step]="5" (onChange)="runSimulation()"></p-slider>
+              <span class="range-hint block text-xs mt-1 text-color-secondary">Tasa de cumplimiento simulada</span>
+            </div>
+
+            <div class="mt-4 flex justify-content-end">
+              <p-button label="Recalcular Riesgo" icon="pi pi-sync" (onClick)="runSimulation()" [loading]="simLoading"></p-button>
+            </div>
+          </div>
+
+          <!-- Columna Derecha: Indicador de Riesgo y Recomendaciones -->
+          <div class="simulator-results" *ngIf="simResult">
+            <!-- Score Card -->
+            <div class="score-result-card glass-card">
+              <h4>Score de Riesgo Simulado <i class="pi pi-info-circle text-xs" style="color: var(--text-color-secondary); margin-left: 0.5rem;" pTooltip="Puntaje de riesgo resultante (0 a 100). Valores superiores a 50/100 indican riesgo de morosidad." tooltipPosition="left"></i></h4>
+              
+              <div class="knob-container">
+                <p-knob
+                  [(ngModel)]="simResult.score"
+                  [readonly]="true"
+                  [size]="180"
+                  [min]="0"
+                  [max]="100"
+                  valueTemplate="{value}"
+                  [valueColor]="getSimRiskColor(simResult.score)"
+                  [rangeColor]="themeService.isDarkMode() ? '#334155' : '#e2e8f0'">
+                </p-knob>
+              </div>
+
+              <div class="category-indicator mt-3">
+                <p-tag [value]="simResult.category" [severity]="getSimSeverity(simResult.category)"></p-tag>
+                <span class="sim-label mt-1">Nivel de Riesgo Predictivo</span>
+              </div>
+            </div>
+
+            <!-- Recommendations list -->
+            <div class="sim-recs-card glass-card">
+              <h4><i class="pi pi-bolt text-warning"></i> Recomendación del Motor IA <i class="pi pi-info-circle text-xs" style="color: var(--text-color-secondary); margin-left: 0.5rem;" pTooltip="Políticas sugeridas automáticamente por el motor para mitigar el riesgo de morosidad." tooltipPosition="left"></i></h4>
+              
+              <div class="rec-list">
+                <div class="rec-item" *ngFor="let rec of simResult.recommendations; let first = first" [class.first-rec]="first">
+                  <i class="pi" [class.pi-exclamation-triangle]="simResult.score > 50" [class.pi-info-circle]="simResult.score <= 50" [style.color]="getSimRiskColor(simResult.score)"></i>
+                  <span>{{ rec }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </p-tabPanel>

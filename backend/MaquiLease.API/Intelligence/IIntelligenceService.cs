@@ -8,5 +8,8 @@ namespace MaquiLease.API.Intelligence
         Task<PricingResponseDto> RecommendPrice(PricingRequestDto request);
         Task<RevenueForecastDto> RevenueForecast();
         Task<SegmentationSummaryDto> SegmentClients();
+        Task<List<AssetHealthDto>> GetAssetHealthAnalysis();
+        Task<List<MatchmakerRecommendationDto>> GetMatchmakerRecommendations();
+        Task<SimulatedRiskDto> SimulateRiskScore(RiskSimulationRequestDto request);
     }
 }

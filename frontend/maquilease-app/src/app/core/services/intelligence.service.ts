@@ -78,6 +78,49 @@ export interface SegmentationSummary {
   segmentCounts: { [key: string]: number };
 }
 
+// ── Asset Health Analysis ───────────────────────
+export interface AssetHealth {
+  assetId: number;
+  assetName: string;
+  assetCode: string;
+  category: string;
+  healthIndex: number;
+  wearPercentage: number;
+  contractsCount: number;
+  status: string;
+  recommendation: string;
+}
+
+// ── Matchmaker Recommendations ──────────────────
+export interface MatchmakerRecommendation {
+  clientId: number;
+  clientName: string;
+  sector: string;
+  assetId: number;
+  assetName: string;
+  assetCategory: string;
+  affinityScore: number;
+  suggestedMonthlyRate: number;
+  confidenceLevel: string;
+  reasoning: string;
+}
+
+// ── Risk Simulation ─────────────────────────────
+export interface RiskSimulationRequest {
+  sector: string;
+  totalAmount: number;
+  downPayment: number;
+  installmentsCount: number;
+  onTimePaymentRate: number;
+}
+
+export interface SimulatedRisk {
+  score: number;
+  category: string;
+  categoryColor: string;
+  recommendations: string[];
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -98,5 +141,17 @@ export class IntelligenceService {
 
   getClientScoring(): Observable<SegmentationSummary> {
     return this.api.get<SegmentationSummary>('intelligence/client-scoring');
+  }
+
+  getAssetHealth(): Observable<AssetHealth[]> {
+    return this.api.get<AssetHealth[]>('intelligence/asset-health');
+  }
+
+  getMatchmaker(): Observable<MatchmakerRecommendation[]> {
+    return this.api.get<MatchmakerRecommendation[]>('intelligence/matchmaker');
+  }
+
+  simulateRisk(request: RiskSimulationRequest): Observable<SimulatedRisk> {
+    return this.api.post<SimulatedRisk>('intelligence/simulate', request);
   }
 }

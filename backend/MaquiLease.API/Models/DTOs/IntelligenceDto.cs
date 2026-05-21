@@ -84,4 +84,51 @@ namespace MaquiLease.API.Models.DTOs
         public List<ClientSegmentDto> Clients { get; set; } = new();
         public Dictionary<string, int> SegmentCounts { get; set; } = new();
     }
+
+    // ── Asset Health Analysis ───────────────────────
+    public class AssetHealthDto
+    {
+        public int AssetId { get; set; }
+        public string AssetName { get; set; } = string.Empty;
+        public string AssetCode { get; set; } = string.Empty;
+        public string Category { get; set; } = string.Empty;
+        public decimal HealthIndex { get; set; } // 0 - 100
+        public decimal WearPercentage { get; set; } // 0 - 100
+        public int ContractsCount { get; set; }
+        public string Status { get; set; } = string.Empty;
+        public string Recommendation { get; set; } = string.Empty;
+    }
+
+    // ── Matchmaker Recommendations ──────────────────
+    public class MatchmakerRecommendationDto
+    {
+        public int ClientId { get; set; }
+        public string ClientName { get; set; } = string.Empty;
+        public string Sector { get; set; } = string.Empty;
+        public int AssetId { get; set; }
+        public string AssetName { get; set; } = string.Empty;
+        public string AssetCategory { get; set; } = string.Empty;
+        public decimal AffinityScore { get; set; } // 0 - 100
+        public decimal SuggestedMonthlyRate { get; set; }
+        public string ConfidenceLevel { get; set; } = string.Empty; // Alta, Media
+        public string Reasoning { get; set; } = string.Empty;
+    }
+
+    // ── Risk Simulation ─────────────────────────────
+    public class RiskSimulationRequestDto
+    {
+        public string Sector { get; set; } = string.Empty;
+        public decimal TotalAmount { get; set; }
+        public decimal DownPayment { get; set; }
+        public int InstallmentsCount { get; set; }
+        public decimal OnTimePaymentRate { get; set; } // 0 - 100
+    }
+
+    public class SimulatedRiskDto
+    {
+        public decimal Score { get; set; }
+        public string Category { get; set; } = string.Empty;
+        public string CategoryColor { get; set; } = string.Empty;
+        public List<string> Recommendations { get; set; } = new();
+    }
 }
