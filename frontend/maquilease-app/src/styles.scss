@@ -324,3 +324,60 @@ html[data-theme="dark"] {
   .kpi-icon-box.amber   { background: rgba(245,158,11,0.15); }
   .kpi-icon-box.rose    { background: rgba(244,63,94,0.15);  }
 }
+
+/* Custom styling for the notification overlay in dark mode */
+html[data-theme="dark"] .notif-overlay {
+  background-color: var(--surface-b) !important;
+  border: 1px solid var(--glass-border) !important;
+  color: var(--text-color) !important;
+  box-shadow: var(--glass-shadow) !important;
+}
+
+html[data-theme="dark"] .notif-overlay .p-overlaypanel-content {
+  background-color: var(--surface-b) !important;
+  color: var(--text-color) !important;
+}
+
+html[data-theme="dark"] .notif-overlay:after {
+  border-bottom-color: var(--surface-b) !important;
+}
+
+html[data-theme="dark"] .notif-overlay:before {
+  border-bottom-color: var(--glass-border) !important;
+}
+
+html[data-theme="dark"] .notif-overlay .p-divider {
+  border-color: var(--glass-border) !important;
+}
+
+html[data-theme="dark"] .notif-overlay .notif-title {
+  color: var(--text-color) !important;
+}
+
+html[data-theme="dark"] .notif-overlay .notif-item {
+  color: var(--text-color) !important;
+}
+
+html[data-theme="dark"] .notif-overlay .notif-item:hover {
+  background-color: var(--nav-active-bg) !important;
+}
+
+html[data-theme="dark"] .notif-overlay .notif-item.unread {
+  background-color: rgba(244, 63, 94, 0.12) !important;
+}
+
+html[data-theme="dark"] .notif-overlay .notif-icon.vencimiento_proximo {
+  background-color: rgba(217, 119, 6, 0.2) !important;
+  color: #fbbf24 !important;
+}
+
+html[data-theme="dark"] .notif-overlay .notif-icon.cuota_vencida {
+  background-color: rgba(220, 38, 38, 0.2) !important;
+  color: #fca5a5 !important;
+}
+
+html[data-theme="dark"] .notif-overlay .notif-icon.riesgo_alto {
+  background-color: rgba(79, 70, 229, 0.2) !important;
+  color: #a5b4fc !important;
+}
+
