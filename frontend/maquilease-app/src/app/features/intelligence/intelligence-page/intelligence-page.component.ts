@@ -44,7 +44,7 @@ interface AssetOption {
     TableModule, CardModule, TooltipModule, InputNumberModule
   ],
   templateUrl: './intelligence-page.component.html',
-  styleUrl: './intelligence-page.component.scss'
+  styleUrls: ['./intelligence-page.component.scss']
 })
 export class IntelligencePageComponent implements OnInit {
   private intelligenceService = inject(IntelligenceService);
