@@ -4,7 +4,7 @@
   "scripts": {
     "ng": "ng",
     "config": "node scripts/set-env.js",
-    "start": "npm run config && ng serve",
+    "start": "npm run config && ng serve --host 0.0.0.0",
     "build": "npm run config && ng build",
     "build:test": "npm run config && ng build --configuration development",
     "build:prod": "npm run config && ng build --configuration production",

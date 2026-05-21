@@ -15,7 +15,7 @@ import { MessageService } from 'primeng/api';
   imports: [CommonModule, TableModule, TagModule, ButtonModule, TooltipModule, RippleModule, ToastModule],
   providers: [MessageService],
   templateUrl: './alerts-page.component.html',
-  styleUrl: './alerts-page.component.scss'
+  styleUrls: ['./alerts-page.component.scss']
 })
 export class AlertsPageComponent implements OnInit {
   private alertsService = inject(AlertsService);
