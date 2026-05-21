@@ -5,6 +5,7 @@ import { Router, ActivatedRoute } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { DropdownModule } from 'primeng/dropdown';
+import { AutoCompleteModule } from 'primeng/autocomplete';
 import { Client } from '../models/client.interface';
 import { ClientService } from '../services/client.service';
 import { CatalogService } from '../../../core/services/catalog.service';
@@ -12,7 +13,7 @@ import { CatalogService } from '../../../core/services/catalog.service';
 @Component({
   selector: 'app-clients-create',
   standalone: true,
-  imports: [CommonModule, FormsModule, ButtonModule, InputTextModule, DropdownModule],
+  imports: [CommonModule, FormsModule, ButtonModule, InputTextModule, DropdownModule, AutoCompleteModule],
   template: `
     <div class="card p-3 m-3 surface-card border-round shadow-2">
       <div class="flex justify-content-between align-items-center mb-4">
@@ -43,7 +44,17 @@ import { CatalogService } from '../../../core/services/catalog.service';
         </div>
         <div class="field col-12 md:col-6">
           <label for="sector">Sector</label>
-          <p-dropdown id="sector" [options]="sectors" [(ngModel)]="clientForm.sector" placeholder="Seleccione o escriba un Sector" [filter]="true" [editable]="true"></p-dropdown>
+          <p-autoComplete id="sector" 
+            [(ngModel)]="clientForm.sector" 
+            [suggestions]="filteredSectors" 
+            (completeMethod)="filterSectors($event)" 
+            [completeOnFocus]="true"
+            [minLength]="0"
+            (click)="ac.handleDropdownClick($event)" 
+            #ac 
+            placeholder="Seleccione o escriba un Sector"
+            [dropdown]="false">
+          </p-autoComplete>
         </div>
         <div class="field col-12">
           <label for="address">Dirección</label>
@@ -64,7 +75,8 @@ export class ClientsCreateComponent implements OnInit {
   clientsService = inject(ClientService);
   catalogService = inject(CatalogService);
 
-  sectors: any[] = [];
+  sectors: string[] = [];
+  filteredSectors: string[] = [];
 
   clientForm: Client = {
     clientId: 0,
@@ -97,8 +109,13 @@ export class ClientsCreateComponent implements OnInit {
 
   loadSectors() {
     this.catalogService.getSectors().subscribe(data => {
-      this.sectors = data.map(s => ({ label: s.label, value: s.name }));
+      this.sectors = data.map(s => s.name);
     });
+  }
+
+  filterSectors(event: any) {
+    const query = event.query || '';
+    this.filteredSectors = this.sectors.filter(s => s.includes(query));
   }
 
   saveClient() {

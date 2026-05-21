@@ -274,7 +274,7 @@
     <p-tabPanel header="Salud de Activos" leftIcon="pi pi-heart">
       <div class="tab-content">
         <div class="asset-health-section" *ngIf="!healthLoading && assetHealths.length > 0">
-          <div class="glass-card mb-4 header-tip">
+          <div class="glass-card mb-4 header-tip header-tip-health">
             <h3><i class="pi pi-info-circle text-primary"></i> Mantenimiento Predictivo IA</h3>
             <p class="subtitle text-sm">Nuestro motor estima el desgaste estructural de los activos calculando antigüedad, depreciación comercial, contratos previos y alertas activas. Evita fallas en obra agendando revisiones tempranas.</p>
           </div>
@@ -335,7 +335,7 @@
     <p-tabPanel header="Matchmaker de Inventario" leftIcon="pi pi-sparkles">
       <div class="tab-content">
         <div class="matchmaker-section" *ngIf="!matchmakerLoading && matchmakerRecs.length > 0">
-          <div class="glass-card mb-4 header-tip">
+          <div class="glass-card mb-4 header-tip header-tip-matchmaker">
             <h3><i class="pi pi-info-circle text-primary"></i> Motor de Cross-Selling Inteligente</h3>
             <p class="subtitle text-sm">Cruza automáticamente la maquinaria en inventario libre (disponible) con los perfiles comerciales de clientes estables. Identifica oportunidades de arrendamiento altamente probables y sugiere tarifas optimizadas.</p>
           </div>
@@ -393,7 +393,7 @@
     <!-- ══════════════════════════════════════════ -->
     <p-tabPanel header="Simulador 'What-If'" leftIcon="pi pi-sliders-h">
       <div class="tab-content">
-        <div class="glass-card mb-4 header-tip">
+        <div class="glass-card mb-4 header-tip header-tip-simulator">
           <h3><i class="pi pi-sliders-h text-primary"></i> Sandbox de Evaluación Crediticia</h3>
           <p class="subtitle text-sm">Modifique dinámicamente las condiciones financieras propuestas para predecir al instante el nivel de riesgo del contrato y recibir recomendaciones automáticas de mitigación de la IA.</p>
         </div>

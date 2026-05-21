@@ -33,7 +33,7 @@ import { PaymentService } from '../../payments/services/payment.service';
   ],
   providers: [MessageService],
   templateUrl: './contract-detail.component.html',
-  styleUrls: []
+  styleUrls: ['./contract-detail.component.scss']
 })
 export class ContractDetailComponent implements OnInit {
   private route = inject(ActivatedRoute);

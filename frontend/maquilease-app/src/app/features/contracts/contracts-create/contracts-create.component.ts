@@ -24,7 +24,8 @@ import { ServiceCatalogService } from '../../services-catalog/services/service-c
     CommonModule, FormsModule, ButtonModule, StepsModule,
     DropdownModule, InputNumberModule, CalendarModule, InputTextareaModule, TableModule
   ],
-  templateUrl: './contracts-create.component.html'
+  templateUrl: './contracts-create.component.html',
+  styleUrls: ['./contracts-create.component.scss']
 })
 export class ContractsCreateComponent implements OnInit, AfterViewInit {
   private contractService = inject(ContractService);

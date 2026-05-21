@@ -7,6 +7,7 @@ import { InputTextModule } from 'primeng/inputtext';
 import { InputNumberModule } from 'primeng/inputnumber';
 import { DropdownModule } from 'primeng/dropdown';
 import { CheckboxModule } from 'primeng/checkbox';
+import { AutoCompleteModule } from 'primeng/autocomplete';
 import { ServiceObj as ServiceDto } from '../../services-catalog/models/service.interface';
 import { ServiceCatalogService as ServiceService } from '../../services-catalog/services/service-catalog.service';
 import { CatalogService } from '../../../core/services/catalog.service';
@@ -14,7 +15,7 @@ import { CatalogService } from '../../../core/services/catalog.service';
 @Component({
   selector: 'app-services-create',
   standalone: true,
-  imports: [CommonModule, FormsModule, ButtonModule, InputTextModule, InputNumberModule, DropdownModule, CheckboxModule],
+  imports: [CommonModule, FormsModule, ButtonModule, InputTextModule, InputNumberModule, DropdownModule, CheckboxModule, AutoCompleteModule],
   template: `
     <div class="card p-3 m-3 surface-card border-round shadow-2">
       <div class="flex justify-content-between align-items-center mb-4">
@@ -37,7 +38,17 @@ import { CatalogService } from '../../../core/services/catalog.service';
         </div>
         <div class="field col-12 md:col-6">
           <label for="category">Categoría</label>
-          <p-dropdown id="category" [options]="categories" [(ngModel)]="serviceForm.category" placeholder="Seleccione o escriba una Categoría" [filter]="true" [editable]="true"></p-dropdown>
+          <p-autoComplete id="category" 
+            [(ngModel)]="serviceForm.category" 
+            [suggestions]="filteredCategories" 
+            (completeMethod)="filterCategories($event)" 
+            [completeOnFocus]="true"
+            [minLength]="0"
+            (click)="ac.handleDropdownClick($event)" 
+            #ac 
+            placeholder="Seleccione o escriba una Categoría"
+            [dropdown]="false">
+          </p-autoComplete>
         </div>
         <div class="field col-12 md:col-4">
           <label for="basePrice">Precio Base *</label>
@@ -110,7 +121,8 @@ export class ServicesCreateComponent implements OnInit {
     { label: 'Por Kilómetro', value: 'km' }
   ];
 
-  categories: any[] = [];
+  categories: string[] = [];
+  filteredCategories: string[] = [];
   isEdit = false;
 
   ngOnInit() {
@@ -127,8 +139,13 @@ export class ServicesCreateComponent implements OnInit {
 
   loadCategories() {
     this.catalogService.getServiceCategories().subscribe(data => {
-      this.categories = data.map(c => ({ label: c.label, value: c.name }));
+      this.categories = data.map(c => c.name);
     });
+  }
+
+  filterCategories(event: any) {
+    const query = event.query || '';
+    this.filteredCategories = this.categories.filter(c => c.includes(query));
   }
 
   saveService() {

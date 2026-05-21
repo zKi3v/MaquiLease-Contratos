@@ -1,0 +1,130 @@
+/* ── SIGNATURE BOX & CANVAS STYLING ───────────────────────── */
+.border-solid.border-300.border-round {
+  position: relative;
+  background-color: #ffffff;
+  border: 1.5px solid var(--surface-d) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  border-radius: 12px !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+
+  canvas {
+    background-color: #ffffff;
+    cursor: crosshair;
+    display: block;
+  }
+
+  &:hover {
+    border-color: var(--primary-color) !important;
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.15), 0 4px 20px rgba(0, 0, 0, 0.08) !important;
+    transform: translateY(-1px);
+  }
+}
+
+html[data-theme="dark"] .border-solid.border-300.border-round {
+  border-color: var(--glass-border) !important;
+  background-color: #ffffff; // Keep signature canvas background white for clean signature data URL
+  
+  canvas {
+    background-color: #ffffff;
+  }
+
+  &:hover {
+    border-color: var(--primary-color) !important;
+    box-shadow: 0 0 25px rgba(59, 130, 246, 0.3), 0 4px 20px rgba(0, 0, 0, 0.4) !important;
+  }
+}
+
+/* ── STEP CARD GLASS SHINE & GRADIENTS ─────────────────────── */
+:host ::ng-deep {
+  .p-steps {
+    .p-steps-item {
+      .p-menuitem-link {
+        transition: all 0.25s ease;
+        &:hover {
+          .p-steps-number {
+            background-color: var(--surface-d) !important;
+            color: var(--text-color) !important;
+          }
+        }
+      }
+      &.p-highlight {
+        .p-menuitem-link {
+          .p-steps-number {
+            background-color: var(--primary-color) !important;
+            color: var(--primary-color-text) !important;
+            box-shadow: 0 0 15px rgba(37, 99, 235, 0.4) !important;
+          }
+          .p-steps-title {
+            color: var(--primary-color) !important;
+            font-weight: 600;
+          }
+        }
+      }
+    }
+  }
+
+  /* Table timeline customized */
+  .p-datatable.p-datatable-sm {
+    border: 1px solid var(--glass-border) !important;
+    box-shadow: var(--card-shadow) !important;
+    border-radius: 12px;
+    overflow: hidden;
+
+    .p-datatable-thead > tr > th {
+      background-color: var(--surface-b) !important;
+      font-size: 0.75rem;
+      letter-spacing: 0.05em;
+    }
+
+    .p-datatable-tbody > tr {
+      background-color: var(--surface-a) !important;
+      transition: all 0.2s ease;
+
+      &:hover {
+        background-color: var(--surface-b) !important;
+        transform: scale(1.002) translateX(4px);
+        box-shadow: inset 3px 0 0 0 var(--primary-color) !important;
+      }
+    }
+  }
+}
+
+/* ── LABELS AND CONTROLS ──────────────────────────────────── */
+label {
+  font-weight: 500;
+  color: var(--text-color);
+  font-size: 0.88rem;
+  margin-bottom: 0.5rem;
+  display: inline-block;
+  letter-spacing: 0.01em;
+}
+
+.text-900 {
+  font-family: 'Outfit', sans-serif;
+  font-weight: 600;
+  font-size: 1.15rem;
+}
+
+/* Textarea subtle styling */
+textarea {
+  border-radius: 9px !important;
+  border: 1.5px solid var(--surface-d) !important;
+  background-color: var(--surface-a) !important;
+  color: var(--text-color) !important;
+  font-family: var(--font-family) !important;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  padding: 0.75rem !important;
+
+  &:focus {
+    box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.16) !important;
+    border-color: var(--primary-color) !important;
+    transform: translateY(-1px);
+    outline: none;
+  }
+}
+
+html[data-theme="dark"] textarea {
+  border-color: var(--glass-border) !important;
+  background-color: var(--surface-b) !important;
+}
