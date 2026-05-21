@@ -14,9 +14,12 @@ Este documento centraliza el avance del sistema y las metas pendientes para la e
 ---
 
 ## 🕒 Actividad Reciente (Hoy 2026-05-21)
-- **Merge de la Rama Main**: Sincronización exitosa de todas las ramas de desarrollo. Se verificó que todos los componentes y servicios compilan al 100% sin errores.
-- **Fase E (Cierre Transaccional)**: Implementación y validación final de la **Vista de Detalle de Contrato** (`ContractDetail`) y el **Historial Global y Registro de Pagos** (`PaymentsList` / `registerPayment`) con descarga automatizada de recibos en PDF mediante QuestPDF.
-- **Soporte de Modo Oscuro Completo**: Integración final del modo oscuro en el panel de notificaciones y la interfaz del Sistema de IA.
+- **Armonización y Unificación de Ancho de Contenedores**: Estandarización de la geometría de maquetación en el *Sistema IA*, *Alertas* e *Historial de Pagos* a un ancho uniforme de `max-width: 1400px; margin: 0 auto; padding: 1.5rem;` para eliminar saltos y desalineaciones horizontales al navegar.
+- **Campos de Catálogos Secundarios (AutoComplete Premium)**: Reemplazo de dropdowns redundantes por componentes `p-autoComplete` con activación instantánea al enfocar (`completeOnFocus`) y filtrado case-sensitive en tiempo real, permitiendo escribir directamente tanto para buscar como para crear nuevos registros dinámicos.
+- **Perfeccionamiento UI/UX & Suite IA**: Refinamiento dinámico del score de confianza del Matchmaker (ligado proactivamente al riesgo crediticio), cajas de alerta con gradientes de marca y auras neon para cada pestaña inteligente, tooltips contextuales (`pTooltip`) integrados de forma global y transiciones sutiles de levantamiento en tablas y tarjetas del Dashboard.
+- **Merge de la Rama Main**: Sincronización de todas las ramas y validación de compilación del frontend y backend sin errores.
+- **Fase E (Cierre Transaccional)**: Validación de la **Vista de Detalle de Contrato** (`ContractDetail`) e **Historial de Pagos** (`PaymentsList`) con recibos oficiales generados y descargados mediante QuestPDF.
+- **Soporte de Modo Oscuro Completo**: Integración en el panel de notificaciones y la interfaz del Sistema de IA.
 
 ---
 
@@ -28,7 +31,7 @@ Este documento centraliza el avance del sistema y las metas pendientes para la e
 - **Autorización**: JWT Bearer activo; endpoints protegidos y roles definidos (`admin`, `operador`, `gerente`).
 
 ### 🧠 Sistema Inteligente (Fase B)
-- **Motor Backend**: `IntelligenceService` con algoritmos ponderados para evaluación financiera.
+- **Motor Backend**: `IntelligenceService` con algoritmos ponderados para evaluación financiera (Salud de Activos, Matchmaker y Simulador Crediticio What-If).
 - **Predicción y Análisis**: Cálculo de Risk Score, recomendación dinámica de Precios, Proyección de ingresos (Forecast 3 bandas) y Segmentación.
 - **Dashboard Interactivo**: `/intelligence` integrado con PrimeNG Charts, Knobs y validación visual de morosidad (Tooltips informativos).
 
@@ -49,9 +52,12 @@ Este documento centraliza el avance del sistema y las metas pendientes para la e
 - **QuestPDF**: Generación de recibos de pago en PDF funcional.
 - **Lógica de Contratos**: Cálculo automático de cronograma de cuotas e impacto en estado de activos.
 
-### 🎨 UI/UX Premium
+### 🎨 UI/UX Premium & Catálogos Dinámicos
+- **Geometría Uniforme**: Alineación horizontal simétrica en todas las secciones avanzadas (`max-width: 1400px`).
+- **AutoComplete Premium**: Reemplazo de dropdowns pesados por inputs reactivos con sugerencias activadas en click y filtrado de texto case-sensitive para creación libre de registros en sectores, categorías y marcas de maquinaria.
+- **Estética de Alta Gama**: Degradados con auras neon dinámicas, blobs de luz radiales blur de fondo en Dashboard y micro-animaciones hover con sombras fluidas.
+- **Firma Digital & Detalle Financiero**: Wizard de contratos con canvas de firma iluminado digitalmente y vista de cuotas vencidas destacadas.
 - **PrimeNG 17**: Uso de componentes avanzados y Signals de Angular 18.
-- **Wizard de Contratos**: Proceso de 3 pasos con firma digital integrada.
 - **Dashboard**: Layout responsivo con soporte nativo para Dark/Light mode.
 
 ---
