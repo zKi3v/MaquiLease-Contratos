@@ -9,6 +9,7 @@ import { DropdownModule } from 'primeng/dropdown';
 import { CheckboxModule } from 'primeng/checkbox';
 import { ServiceObj as ServiceDto } from '../../services-catalog/models/service.interface';
 import { ServiceCatalogService as ServiceService } from '../../services-catalog/services/service-catalog.service';
+import { CatalogService } from '../../../core/services/catalog.service';
 
 @Component({
   selector: 'app-services-create',
@@ -36,7 +37,7 @@ import { ServiceCatalogService as ServiceService } from '../../services-catalog/
         </div>
         <div class="field col-12 md:col-6">
           <label for="category">Categoría</label>
-          <input pInputText id="category" [(ngModel)]="serviceForm.category" />
+          <p-dropdown id="category" [options]="categories" [(ngModel)]="serviceForm.category" placeholder="Seleccione o escriba una Categoría" [filter]="true" [editable]="true"></p-dropdown>
         </div>
         <div class="field col-12 md:col-4">
           <label for="basePrice">Precio Base *</label>
@@ -73,6 +74,7 @@ export class ServicesCreateComponent implements OnInit {
   router = inject(Router);
   route = inject(ActivatedRoute);
   servicesService = inject(ServiceService);
+  catalogService = inject(CatalogService);
 
   serviceForm: ServiceDto = {
     serviceId: 0,
@@ -108,9 +110,11 @@ export class ServicesCreateComponent implements OnInit {
     { label: 'Por Kilómetro', value: 'km' }
   ];
 
+  categories: any[] = [];
   isEdit = false;
 
   ngOnInit() {
+    this.loadCategories();
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
       this.isEdit = true;
@@ -119,6 +123,12 @@ export class ServicesCreateComponent implements OnInit {
         this.serviceForm = { ...statedService };
       }
     }
+  }
+
+  loadCategories() {
+    this.catalogService.getServiceCategories().subscribe(data => {
+      this.categories = data.map(c => ({ label: c.label, value: c.name }));
+    });
   }
 
   saveService() {

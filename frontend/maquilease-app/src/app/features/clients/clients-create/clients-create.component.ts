@@ -4,13 +4,15 @@ import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
+import { DropdownModule } from 'primeng/dropdown';
 import { Client } from '../models/client.interface';
 import { ClientService } from '../services/client.service';
+import { CatalogService } from '../../../core/services/catalog.service';
 
 @Component({
   selector: 'app-clients-create',
   standalone: true,
-  imports: [CommonModule, FormsModule, ButtonModule, InputTextModule],
+  imports: [CommonModule, FormsModule, ButtonModule, InputTextModule, DropdownModule],
   template: `
     <div class="card p-3 m-3 surface-card border-round shadow-2">
       <div class="flex justify-content-between align-items-center mb-4">
@@ -41,7 +43,7 @@ import { ClientService } from '../services/client.service';
         </div>
         <div class="field col-12 md:col-6">
           <label for="sector">Sector</label>
-          <input pInputText id="sector" [(ngModel)]="clientForm.sector" />
+          <p-dropdown id="sector" [options]="sectors" [(ngModel)]="clientForm.sector" placeholder="Seleccione o escriba un Sector" [filter]="true" [editable]="true"></p-dropdown>
         </div>
         <div class="field col-12">
           <label for="address">Dirección</label>
@@ -60,6 +62,9 @@ export class ClientsCreateComponent implements OnInit {
   router = inject(Router);
   route = inject(ActivatedRoute);
   clientsService = inject(ClientService);
+  catalogService = inject(CatalogService);
+
+  sectors: any[] = [];
 
   clientForm: Client = {
     clientId: 0,
@@ -76,6 +81,7 @@ export class ClientsCreateComponent implements OnInit {
   isEdit = false;
 
   ngOnInit() {
+    this.loadSectors();
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
       this.isEdit = true;
@@ -87,6 +93,12 @@ export class ClientsCreateComponent implements OnInit {
         this.clientForm = { ...statedClient };
       }
     }
+  }
+
+  loadSectors() {
+    this.catalogService.getSectors().subscribe(data => {
+      this.sectors = data.map(s => ({ label: s.label, value: s.name }));
+    });
   }
 
   saveClient() {

@@ -8,6 +8,7 @@ import { InputNumberModule } from 'primeng/inputnumber';
 import { DropdownModule } from 'primeng/dropdown';
 import { Asset } from '../models/asset.interface';
 import { AssetService } from '../services/asset.service';
+import { CatalogService } from '../../../core/services/catalog.service';
 
 @Component({
   selector: 'app-assets-create',
@@ -31,11 +32,11 @@ import { AssetService } from '../services/asset.service';
         </div>
         <div class="field col-12 md:col-6">
           <label for="category">Categoría</label>
-          <input pInputText id="category" [(ngModel)]="assetForm.category" />
+          <p-dropdown id="category" [options]="categories" [(ngModel)]="assetForm.category" placeholder="Seleccione o escriba una Categoría" [filter]="true" [editable]="true"></p-dropdown>
         </div>
         <div class="field col-12 md:col-6">
           <label for="brand">Marca</label>
-          <input pInputText id="brand" [(ngModel)]="assetForm.brand" />
+          <p-dropdown id="brand" [options]="brands" [(ngModel)]="assetForm.brand" placeholder="Seleccione o escriba una Marca" [filter]="true" [editable]="true"></p-dropdown>
         </div>
         <div class="field col-12 md:col-6">
           <label for="model">Modelo</label>
@@ -74,6 +75,7 @@ export class AssetsCreateComponent implements OnInit {
   router = inject(Router);
   route = inject(ActivatedRoute);
   assetsService = inject(AssetService);
+  catalogService = inject(CatalogService);
 
   assetForm: Asset = {
     assetId: 0,
@@ -97,9 +99,12 @@ export class AssetsCreateComponent implements OnInit {
     { label: 'Vendido', value: 'vendido' }
   ];
 
+  categories: any[] = [];
+  brands: any[] = [];
   isEdit = false;
 
   ngOnInit() {
+    this.loadCatalogs();
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
       this.isEdit = true;
@@ -108,6 +113,15 @@ export class AssetsCreateComponent implements OnInit {
         this.assetForm = { ...statedAsset };
       }
     }
+  }
+
+  loadCatalogs() {
+    this.catalogService.getAssetCategories().subscribe(data => {
+      this.categories = data.map(c => ({ label: c.label, value: c.name }));
+    });
+    this.catalogService.getAssetBrands().subscribe(data => {
+      this.brands = data.map(b => ({ label: b.label, value: b.name }));
+    });
   }
 
   saveAsset() {

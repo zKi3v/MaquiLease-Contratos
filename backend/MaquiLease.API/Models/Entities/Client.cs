@@ -32,6 +32,9 @@ namespace MaquiLease.API.Models.Entities
         [MaxLength(50)]
         public string? Sector { get; set; }
         
+        public int? ClientSectorId { get; set; }
+        public ClientSector? ClientSector { get; set; }
+        
         public decimal? RiskScore { get; set; }
         
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

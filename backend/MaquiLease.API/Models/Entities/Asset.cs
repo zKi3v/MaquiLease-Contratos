@@ -20,9 +20,15 @@ namespace MaquiLease.API.Models.Entities
         
         [MaxLength(50)]
         public string? Category { get; set; }
+
+        public int? AssetCategoryId { get; set; }
+        public AssetCategory? AssetCategory { get; set; }
         
         [MaxLength(100)]
         public string? Brand { get; set; }
+
+        public int? AssetBrandId { get; set; }
+        public AssetBrand? AssetBrand { get; set; }
         
         [MaxLength(100)]
         public string? Model { get; set; }

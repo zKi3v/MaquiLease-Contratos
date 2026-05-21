@@ -8,7 +8,57 @@ namespace MaquiLease.API.Data
         public static void Initialize(AppDbContext context)
         {
             // Si ya hay datos, no sembrar
-            if (context.Clients.Any()) return;
+            if (context.Clients.Any() || context.ClientSectors.Any()) return;
+
+            // ═══════════════════════════════════════════════
+            // CATÁLOGOS NORMALIZADOS
+            // ═══════════════════════════════════════════════
+            var sectors = new List<ClientSector>
+            {
+                new ClientSector { ClientSectorId = 1, Name = "agroindustrial", Label = "Agroindustrial" },
+                new ClientSector { ClientSectorId = 2, Name = "mineria", Label = "Minería" },
+                new ClientSector { ClientSectorId = 3, Name = "construccion", Label = "Construcción" },
+                new ClientSector { ClientSectorId = 4, Name = "transporte", Label = "Transporte" },
+                new ClientSector { ClientSectorId = 5, Name = "manufactura", Label = "Manufactura" }
+            };
+            context.ClientSectors.AddRange(sectors);
+
+            var assetCategories = new List<AssetCategory>
+            {
+                new AssetCategory { AssetCategoryId = 1, Name = "maquinaria_pesada", Label = "Maquinaria Pesada" },
+                new AssetCategory { AssetCategoryId = 2, Name = "equipo_construccion", Label = "Equipo de Construcción" },
+                new AssetCategory { AssetCategoryId = 3, Name = "generadores", Label = "Generadores" },
+                new AssetCategory { AssetCategoryId = 4, Name = "equipo_logistico", Label = "Equipo Logístico" }
+            };
+            context.AssetCategories.AddRange(assetCategories);
+
+            var assetBrands = new List<AssetBrand>
+            {
+                new AssetBrand { AssetBrandId = 1, Name = "Caterpillar", Label = "Caterpillar" },
+                new AssetBrand { AssetBrandId = 2, Name = "Komatsu", Label = "Komatsu" },
+                new AssetBrand { AssetBrandId = 3, Name = "Liebherr", Label = "Liebherr" },
+                new AssetBrand { AssetBrandId = 4, Name = "SDLG", Label = "SDLG" },
+                new AssetBrand { AssetBrandId = 5, Name = "XCMG", Label = "XCMG" },
+                new AssetBrand { AssetBrandId = 6, Name = "Shantui", Label = "Shantui" },
+                new AssetBrand { AssetBrandId = 7, Name = "Sicoma", Label = "Sicoma" },
+                new AssetBrand { AssetBrandId = 8, Name = "Weichai", Label = "Weichai" },
+                new AssetBrand { AssetBrandId = 9, Name = "Sany", Label = "Sany" },
+                new AssetBrand { AssetBrandId = 10, Name = "Heli", Label = "Heli" }
+            };
+            context.AssetBrands.AddRange(assetBrands);
+
+            var serviceCategories = new List<ServiceCategory>
+            {
+                new ServiceCategory { ServiceCategoryId = 1, Name = "mantenimiento", Label = "Mantenimiento" },
+                new ServiceCategory { ServiceCategoryId = 2, Name = "reparacion", Label = "Reparación" },
+                new ServiceCategory { ServiceCategoryId = 3, Name = "instalacion", Label = "Instalación" },
+                new ServiceCategory { ServiceCategoryId = 4, Name = "soporte", Label = "Soporte" },
+                new ServiceCategory { ServiceCategoryId = 5, Name = "consultoria", Label = "Consultoría" },
+                new ServiceCategory { ServiceCategoryId = 6, Name = "capacitacion", Label = "Capacitación" },
+                new ServiceCategory { ServiceCategoryId = 7, Name = "asesoria", Label = "Asesoría" }
+            };
+            context.ServiceCategories.AddRange(serviceCategories);
+            context.SaveChanges();
 
             // ═══════════════════════════════════════════════
             // USUARIOS
@@ -27,12 +77,12 @@ namespace MaquiLease.API.Data
             // ═══════════════════════════════════════════════
             var clients = new List<Client>
             {
-                new Client { ClientId = 1, RUC = "20100130204", BusinessName = "AgroExport SAC", ContactName = "Roberto Flores", Email = "rflores@agroexport.pe", Phone = "01-2345678", Address = "Av. La Molina 456, Lima", Sector = "agroindustrial", RiskScore = 15, IsActive = true },
-                new Client { ClientId = 2, RUC = "20512345678", BusinessName = "Minera del Sur SA", ContactName = "Ana Gutiérrez", Email = "agutierrez@minerasur.pe", Phone = "054-234567", Address = "Jr. Arequipa 789, Arequipa", Sector = "mineria", RiskScore = 42, IsActive = true },
-                new Client { ClientId = 3, RUC = "20601234567", BusinessName = "Constructora Lima Norte EIRL", ContactName = "Pedro Castañeda", Email = "pcastaneda@clnorte.pe", Phone = "01-9876543", Address = "Calle Los Olivos 123, Lima", Sector = "construccion", RiskScore = 68, IsActive = true },
-                new Client { ClientId = 4, RUC = "20451234560", BusinessName = "Transportes Andinos SAC", ContactName = "Diana Quispe", Email = "dquispe@transportesandinos.pe", Phone = "064-567890", Address = "Av. Huancavelica 321, Huancayo", Sector = "transporte", RiskScore = 22, IsActive = true },
-                new Client { ClientId = 5, RUC = "20789012345", BusinessName = "Alimentos del Pacífico SA", ContactName = "Jorge Ramírez", Email = "jramirez@alpacifico.pe", Phone = "01-4567890", Address = "Av. Argentina 1050, Callao", Sector = "agroindustrial", RiskScore = 85, IsActive = true },
-                new Client { ClientId = 6, RUC = "20345678901", BusinessName = "Textiles Modernos SAC", ContactName = "Lucía Fernández", Email = "lfernandez@textmod.pe", Phone = "01-3334567", Address = "Jr. Gamarra 550, La Victoria", Sector = "manufactura", RiskScore = 30, IsActive = true }
+                new Client { ClientId = 1, RUC = "20100130204", BusinessName = "AgroExport SAC", ContactName = "Roberto Flores", Email = "rflores@agroexport.pe", Phone = "01-2345678", Address = "Av. La Molina 456, Lima", Sector = "agroindustrial", ClientSectorId = 1, RiskScore = 15, IsActive = true },
+                new Client { ClientId = 2, RUC = "20512345678", BusinessName = "Minera del Sur SA", ContactName = "Ana Gutiérrez", Email = "agutierrez@minerasur.pe", Phone = "054-234567", Address = "Jr. Arequipa 789, Arequipa", Sector = "mineria", ClientSectorId = 2, RiskScore = 42, IsActive = true },
+                new Client { ClientId = 3, RUC = "20601234567", BusinessName = "Constructora Lima Norte EIRL", ContactName = "Pedro Castañeda", Email = "pcastaneda@clnorte.pe", Phone = "01-9876543", Address = "Calle Los Olivos 123, Lima", Sector = "construccion", ClientSectorId = 3, RiskScore = 68, IsActive = true },
+                new Client { ClientId = 4, RUC = "20451234560", BusinessName = "Transportes Andinos SAC", ContactName = "Diana Quispe", Email = "dquispe@transportesandinos.pe", Phone = "064-567890", Address = "Av. Huancavelica 321, Huancayo", Sector = "transporte", ClientSectorId = 4, RiskScore = 22, IsActive = true },
+                new Client { ClientId = 5, RUC = "20789012345", BusinessName = "Alimentos del Pacífico SA", ContactName = "Jorge Ramírez", Email = "jramirez@alpacifico.pe", Phone = "01-4567890", Address = "Av. Argentina 1050, Callao", Sector = "agroindustrial", ClientSectorId = 1, RiskScore = 85, IsActive = true },
+                new Client { ClientId = 6, RUC = "20345678901", BusinessName = "Textiles Modernos SAC", ContactName = "Lucía Fernández", Email = "lfernandez@textmod.pe", Phone = "01-3334567", Address = "Jr. Gamarra 550, La Victoria", Sector = "manufactura", ClientSectorId = 5, RiskScore = 30, IsActive = true }
             };
             context.Clients.AddRange(clients);
             context.SaveChanges();
@@ -42,16 +92,16 @@ namespace MaquiLease.API.Data
             // ═══════════════════════════════════════════════
             var assets = new List<Asset>
             {
-                new Asset { AssetId = 1, Code = "EXC-001", Name = "Excavadora Hidráulica CAT 320", Category = "maquinaria_pesada", Brand = "Caterpillar", Model = "320 GC", PurchaseDate = new DateTime(2023, 3, 15), PurchasePriceCNY = 580000, PurchasePriceUSD = 82000, CurrentValue = 68000, Status = "alquilado", Currency = "PEN" },
-                new Asset { AssetId = 2, Code = "RET-001", Name = "Retroexcavadora Komatsu WB93", Category = "maquinaria_pesada", Brand = "Komatsu", Model = "WB93R-8", PurchaseDate = new DateTime(2023, 6, 20), PurchasePriceCNY = 420000, PurchasePriceUSD = 59500, CurrentValue = 52000, Status = "disponible", Currency = "PEN" },
-                new Asset { AssetId = 3, Code = "GRU-001", Name = "Grúa Torre Liebherr 150 EC-B", Category = "maquinaria_pesada", Brand = "Liebherr", Model = "150 EC-B 6", PurchaseDate = new DateTime(2022, 11, 10), PurchasePriceCNY = 1200000, PurchasePriceUSD = 170000, CurrentValue = 135000, Status = "alquilado", Currency = "PEN" },
-                new Asset { AssetId = 4, Code = "CAR-001", Name = "Cargador Frontal SDLG L958F", Category = "maquinaria_pesada", Brand = "SDLG", Model = "L958F", PurchaseDate = new DateTime(2024, 1, 5), PurchasePriceCNY = 350000, PurchasePriceUSD = 49500, CurrentValue = 46000, Status = "disponible", Currency = "PEN" },
-                new Asset { AssetId = 5, Code = "ROD-001", Name = "Rodillo Compactador XCMG XS203", Category = "maquinaria_pesada", Brand = "XCMG", Model = "XS203J", PurchaseDate = new DateTime(2024, 4, 18), PurchasePriceCNY = 280000, PurchasePriceUSD = 39800, CurrentValue = 37500, Status = "mantenimiento", Currency = "PEN" },
-                new Asset { AssetId = 6, Code = "MOT-001", Name = "Motoniveladora Shantui SG21-3", Category = "maquinaria_pesada", Brand = "Shantui", Model = "SG21-3", PurchaseDate = new DateTime(2023, 8, 22), PurchasePriceCNY = 650000, PurchasePriceUSD = 92000, CurrentValue = 78000, Status = "alquilado", Currency = "PEN" },
-                new Asset { AssetId = 7, Code = "MXC-001", Name = "Mezcladora de Concreto Sicoma", Category = "equipo_construccion", Brand = "Sicoma", Model = "MAO 3000", PurchaseDate = new DateTime(2024, 2, 14), PurchasePriceCNY = 95000, PurchasePriceUSD = 13500, CurrentValue = 12800, Status = "disponible", Currency = "PEN" },
-                new Asset { AssetId = 8, Code = "GEN-001", Name = "Generador Eléctrico Weichai 200kW", Category = "generadores", Brand = "Weichai", Model = "WPG275", PurchaseDate = new DateTime(2023, 12, 1), PurchasePriceCNY = 180000, PurchasePriceUSD = 25500, CurrentValue = 22000, Status = "alquilado", Currency = "PEN" },
-                new Asset { AssetId = 9, Code = "BOM-001", Name = "Bomba de Concreto Sany HBT6016C", Category = "equipo_construccion", Brand = "Sany", Model = "HBT6016C-5S", PurchaseDate = new DateTime(2024, 5, 10), PurchasePriceCNY = 520000, PurchasePriceUSD = 73500, CurrentValue = 71000, Status = "disponible", Currency = "PEN" },
-                new Asset { AssetId = 10, Code = "MNT-001", Name = "Montacargas Heli CPCD30", Category = "equipo_logistico", Brand = "Heli", Model = "CPCD30", PurchaseDate = new DateTime(2024, 3, 8), PurchasePriceCNY = 110000, PurchasePriceUSD = 15600, CurrentValue = 14800, Status = "disponible", Currency = "PEN" }
+                new Asset { AssetId = 1, Code = "EXC-001", Name = "Excavadora Hidráulica CAT 320", Category = "maquinaria_pesada", AssetCategoryId = 1, Brand = "Caterpillar", AssetBrandId = 1, Model = "320 GC", PurchaseDate = new DateTime(2023, 3, 15), PurchasePriceCNY = 580000, PurchasePriceUSD = 82000, CurrentValue = 68000, Status = "alquilado", Currency = "PEN" },
+                new Asset { AssetId = 2, Code = "RET-001", Name = "Retroexcavadora Komatsu WB93", Category = "maquinaria_pesada", AssetCategoryId = 1, Brand = "Komatsu", AssetBrandId = 2, Model = "WB93R-8", PurchaseDate = new DateTime(2023, 6, 20), PurchasePriceCNY = 420000, PurchasePriceUSD = 59500, CurrentValue = 52000, Status = "disponible", Currency = "PEN" },
+                new Asset { AssetId = 3, Code = "GRU-001", Name = "Grúa Torre Liebherr 150 EC-B", Category = "maquinaria_pesada", AssetCategoryId = 1, Brand = "Liebherr", AssetBrandId = 3, Model = "150 EC-B 6", PurchaseDate = new DateTime(2022, 11, 10), PurchasePriceCNY = 1200000, PurchasePriceUSD = 170000, CurrentValue = 135000, Status = "alquilado", Currency = "PEN" },
+                new Asset { AssetId = 4, Code = "CAR-001", Name = "Cargador Frontal SDLG L958F", Category = "maquinaria_pesada", AssetCategoryId = 1, Brand = "SDLG", AssetBrandId = 4, Model = "L958F", PurchaseDate = new DateTime(2024, 1, 5), PurchasePriceCNY = 350000, PurchasePriceUSD = 49500, CurrentValue = 46000, Status = "disponible", Currency = "PEN" },
+                new Asset { AssetId = 5, Code = "ROD-001", Name = "Rodillo Compactador XCMG XS203", Category = "maquinaria_pesada", AssetCategoryId = 1, Brand = "XCMG", AssetBrandId = 5, Model = "XS203J", PurchaseDate = new DateTime(2024, 4, 18), PurchasePriceCNY = 280000, PurchasePriceUSD = 39800, CurrentValue = 37500, Status = "mantenimiento", Currency = "PEN" },
+                new Asset { AssetId = 6, Code = "MOT-001", Name = "Motoniveladora Shantui SG21-3", Category = "maquinaria_pesada", AssetCategoryId = 1, Brand = "Shantui", AssetBrandId = 6, Model = "SG21-3", PurchaseDate = new DateTime(2023, 8, 22), PurchasePriceCNY = 650000, PurchasePriceUSD = 92000, CurrentValue = 78000, Status = "alquilado", Currency = "PEN" },
+                new Asset { AssetId = 7, Code = "MXC-001", Name = "Mezcladora de Concreto Sicoma", Category = "equipo_construccion", AssetCategoryId = 2, Brand = "Sicoma", AssetBrandId = 7, Model = "MAO 3000", PurchaseDate = new DateTime(2024, 2, 14), PurchasePriceCNY = 95000, PurchasePriceUSD = 13500, CurrentValue = 12800, Status = "disponible", Currency = "PEN" },
+                new Asset { AssetId = 8, Code = "GEN-001", Name = "Generador Eléctrico Weichai 200kW", Category = "generadores", AssetCategoryId = 3, Brand = "Weichai", AssetBrandId = 8, Model = "WPG275", PurchaseDate = new DateTime(2023, 12, 1), PurchasePriceCNY = 180000, PurchasePriceUSD = 25500, CurrentValue = 22000, Status = "alquilado", Currency = "PEN" },
+                new Asset { AssetId = 9, Code = "BOM-001", Name = "Bomba de Concreto Sany HBT6016C", Category = "equipo_construccion", AssetCategoryId = 2, Brand = "Sany", AssetBrandId = 9, Model = "HBT6016C-5S", PurchaseDate = new DateTime(2024, 5, 10), PurchasePriceCNY = 520000, PurchasePriceUSD = 73500, CurrentValue = 71000, Status = "disponible", Currency = "PEN" },
+                new Asset { AssetId = 10, Code = "MNT-001", Name = "Montacargas Heli CPCD30", Category = "equipo_logistico", AssetCategoryId = 4, Brand = "Heli", AssetBrandId = 10, Model = "CPCD30", PurchaseDate = new DateTime(2024, 3, 8), PurchasePriceCNY = 110000, PurchasePriceUSD = 15600, CurrentValue = 14800, Status = "disponible", Currency = "PEN" }
             };
             context.Assets.AddRange(assets);
             context.SaveChanges();
@@ -61,14 +111,14 @@ namespace MaquiLease.API.Data
             // ═══════════════════════════════════════════════
             var services = new List<Service>
             {
-                new Service { ServiceId = 1, Code = "SRV-MNT", Name = "Mantenimiento Preventivo", Description = "Inspección general, cambio de aceite, filtros y calibración de sistemas hidráulicos.", ServiceType = "tecnico", Category = "mantenimiento", BasePrice = 2500, PriceUnit = "por_proyecto", Currency = "PEN", EstimatedDuration = "1 día", RequiresAsset = true, IsActive = true },
-                new Service { ServiceId = 2, Code = "SRV-REP", Name = "Reparación Mecánica Mayor", Description = "Reparación de motor, sistema hidráulico o transmisión con repuestos originales.", ServiceType = "tecnico", Category = "reparacion", BasePrice = 8500, PriceUnit = "por_proyecto", Currency = "PEN", EstimatedDuration = "3-5 días", RequiresAsset = true, IsActive = true },
-                new Service { ServiceId = 3, Code = "SRV-INS", Name = "Instalación y Puesta en Marcha", Description = "Transporte, montaje, calibración y pruebas de funcionamiento del equipo en sitio.", ServiceType = "tecnico", Category = "instalacion", BasePrice = 4500, PriceUnit = "por_proyecto", Currency = "PEN", EstimatedDuration = "2 días", RequiresAsset = true, IsActive = true },
-                new Service { ServiceId = 4, Code = "SRV-SOP", Name = "Soporte Técnico Mensual", Description = "Asistencia técnica remota y presencial, con visitas programadas de supervisión.", ServiceType = "tecnico", Category = "soporte", BasePrice = 1800, PriceUnit = "mensual", Currency = "PEN", EstimatedDuration = "Mensual", RequiresAsset = false, IsActive = true },
-                new Service { ServiceId = 5, Code = "SRV-CON", Name = "Consultoría en Gestión de Flota", Description = "Análisis de eficiencia operativa, optimización del uso de activos y reducción de costos.", ServiceType = "profesional", Category = "consultoria", BasePrice = 12000, PriceUnit = "por_proyecto", Currency = "PEN", EstimatedDuration = "2 semanas", RequiresAsset = false, IsActive = true },
-                new Service { ServiceId = 6, Code = "SRV-CAP", Name = "Capacitación de Operadores", Description = "Programa de formación para operadores de maquinaria pesada con certificación.", ServiceType = "profesional", Category = "capacitacion", BasePrice = 6500, PriceUnit = "por_proyecto", Currency = "PEN", EstimatedDuration = "5 días", RequiresAsset = false, IsActive = true },
-                new Service { ServiceId = 7, Code = "SRV-ASE", Name = "Asesoría Técnica Especializada", Description = "Evaluación técnica de proyectos de construcción o minería para selección óptima de maquinaria.", ServiceType = "profesional", Category = "asesoria", BasePrice = 8000, PriceUnit = "por_proyecto", Currency = "PEN", EstimatedDuration = "1 semana", RequiresAsset = false, IsActive = true },
-                new Service { ServiceId = 8, Code = "SRV-AUD", Name = "Auditoría de Seguridad Industrial", Description = "Inspección de cumplimiento de normativas de seguridad en operación de maquinaria.", ServiceType = "profesional", Category = "asesoria", BasePrice = 5500, PriceUnit = "por_proyecto", Currency = "PEN", EstimatedDuration = "3 días", RequiresAsset = false, IsActive = true }
+                new Service { ServiceId = 1, Code = "SRV-MNT", Name = "Mantenimiento Preventivo", Description = "Inspección general, cambio de aceite, filtros y calibración de sistemas hidráulicos.", ServiceType = "tecnico", Category = "mantenimiento", ServiceCategoryId = 1, BasePrice = 2500, PriceUnit = "por_proyecto", Currency = "PEN", EstimatedDuration = "1 día", RequiresAsset = true, IsActive = true },
+                new Service { ServiceId = 2, Code = "SRV-REP", Name = "Reparación Mecánica Mayor", Description = "Reparación de motor, sistema hidráulico o transmisión con repuestos originales.", ServiceType = "tecnico", Category = "reparacion", ServiceCategoryId = 2, BasePrice = 8500, PriceUnit = "por_proyecto", Currency = "PEN", EstimatedDuration = "3-5 días", RequiresAsset = true, IsActive = true },
+                new Service { ServiceId = 3, Code = "SRV-INS", Name = "Instalación y Puesta en Marcha", Description = "Transporte, montaje, calibración y pruebas de funcionamiento del equipo en sitio.", ServiceType = "tecnico", Category = "instalacion", ServiceCategoryId = 3, BasePrice = 4500, PriceUnit = "por_proyecto", Currency = "PEN", EstimatedDuration = "2 días", RequiresAsset = true, IsActive = true },
+                new Service { ServiceId = 4, Code = "SRV-SOP", Name = "Soporte Técnico Mensual", Description = "Asistencia técnica remota y presencial, con visitas programadas de supervisión.", ServiceType = "tecnico", Category = "soporte", ServiceCategoryId = 4, BasePrice = 1800, PriceUnit = "mensual", Currency = "PEN", EstimatedDuration = "Mensual", RequiresAsset = false, IsActive = true },
+                new Service { ServiceId = 5, Code = "SRV-CON", Name = "Consultoría en Gestión de Flota", Description = "Análisis de eficiencia operativa, optimización del uso de activos y reducción de costos.", ServiceType = "profesional", Category = "consultoria", ServiceCategoryId = 5, BasePrice = 12000, PriceUnit = "por_proyecto", Currency = "PEN", EstimatedDuration = "2 semanas", RequiresAsset = false, IsActive = true },
+                new Service { ServiceId = 6, Code = "SRV-CAP", Name = "Capacitación de Operadores", Description = "Programa de formación para operadores de maquinaria pesada con certificación.", ServiceType = "profesional", Category = "capacitacion", ServiceCategoryId = 6, BasePrice = 6500, PriceUnit = "por_proyecto", Currency = "PEN", EstimatedDuration = "5 días", RequiresAsset = false, IsActive = true },
+                new Service { ServiceId = 7, Code = "SRV-ASE", Name = "Asesoría Técnica Especializada", Description = "Evaluación técnica de proyectos de construcción o minería para selección óptima de maquinaria.", ServiceType = "profesional", Category = "asesoria", ServiceCategoryId = 7, BasePrice = 8000, PriceUnit = "por_proyecto", Currency = "PEN", EstimatedDuration = "1 semana", RequiresAsset = false, IsActive = true },
+                new Service { ServiceId = 8, Code = "SRV-AUD", Name = "Auditoría de Seguridad Industrial", Description = "Inspección de cumplimiento de normativas de seguridad en operación de maquinaria.", ServiceType = "profesional", Category = "asesoria", ServiceCategoryId = 7, BasePrice = 5500, PriceUnit = "por_proyecto", Currency = "PEN", EstimatedDuration = "3 días", RequiresAsset = false, IsActive = true }
             };
             context.Services.AddRange(services);
             context.SaveChanges();

@@ -8,6 +8,7 @@ import { DropdownModule } from 'primeng/dropdown';
 import { InputNumberModule } from 'primeng/inputnumber';
 import { CalendarModule } from 'primeng/calendar';
 import { InputTextareaModule } from 'primeng/inputtextarea';
+import { TableModule } from 'primeng/table';
 import SignaturePad from 'signature_pad';
 
 import { ContractService } from '../services/contract.service';
@@ -21,7 +22,7 @@ import { ServiceCatalogService } from '../../services-catalog/services/service-c
   standalone: true,
   imports: [
     CommonModule, FormsModule, ButtonModule, StepsModule,
-    DropdownModule, InputNumberModule, CalendarModule, InputTextareaModule
+    DropdownModule, InputNumberModule, CalendarModule, InputTextareaModule, TableModule
   ],
   templateUrl: './contracts-create.component.html'
 })
@@ -59,6 +60,10 @@ export class ContractsCreateComponent implements OnInit, AfterViewInit {
     signatureHash: ''
   };
 
+  startDate: Date = new Date();
+  endDate: Date = new Date();
+  previewInstallments: any[] = [];
+
   @ViewChild('signatureCanvas') signatureCanvas!: ElementRef<HTMLCanvasElement>;
   signaturePad!: SignaturePad;
 
@@ -69,6 +74,7 @@ export class ContractsCreateComponent implements OnInit, AfterViewInit {
       { label: 'Firma y Acuerdo' }
     ];
     this.loadCatalogs();
+    this.updatePreviewAndEndDate();
   }
 
   ngAfterViewInit() {
@@ -94,6 +100,42 @@ export class ContractsCreateComponent implements OnInit, AfterViewInit {
     this.svcCatalog.getServices().subscribe(data => this.services = data.map(s => ({ label: s.name, value: s.serviceId })));
   }
 
+  updatePreviewAndEndDate() {
+    if (!this.startDate) return;
+
+    // 1. Calcular Fecha Fin
+    const months = this.contractForm.numberOfInstallments || 1;
+    const computedEnd = new Date(this.startDate);
+    computedEnd.setMonth(computedEnd.getMonth() + months);
+    this.endDate = computedEnd;
+
+    // 2. Generar Previsualización de Cronograma de Cuotas (Amortización Mensual)
+    const total = this.contractForm.totalAmount || 0;
+    const initial = this.contractForm.initialPayment || 0;
+    const amountToFinance = Math.max(0, total - initial);
+    
+    this.previewInstallments = [];
+    if (months > 0 && amountToFinance > 0) {
+      const amountPerInstallment = Math.round((amountToFinance / months) * 100) / 100;
+      
+      for (let i = 1; i <= months; i++) {
+        const dueDate = new Date(this.startDate);
+        dueDate.setMonth(dueDate.getMonth() + i);
+
+        // Ajustar centavos en la última cuota
+        const installmentAmount = (i === months)
+          ? Math.round((amountToFinance - (amountPerInstallment * (months - 1))) * 100) / 100
+          : amountPerInstallment;
+
+        this.previewInstallments.push({
+          installmentNumber: i,
+          dueDate: dueDate,
+          amount: installmentAmount
+        });
+      }
+    }
+  }
+
   next() {
     if (this.activeIndex < 2) {
       this.activeIndex++;
@@ -110,10 +152,18 @@ export class ContractsCreateComponent implements OnInit, AfterViewInit {
     }
   }
 
+  cancel() {
+    this.router.navigate(['/contracts']);
+  }
+
   save() {
     if (this.signaturePad && !this.signaturePad.isEmpty()) {
       this.contractForm.signatureHash = this.signaturePad.toDataURL('image/png');
     }
+
+    // Mapear objetos Date a string de formato ISO para guardado
+    this.contractForm.startDate = this.startDate.toISOString();
+    this.contractForm.endDate = this.endDate.toISOString();
 
     this.contractService.createContract(this.contractForm).subscribe(() => {
       this.router.navigate(['/contracts']);

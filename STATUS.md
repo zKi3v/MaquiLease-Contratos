@@ -1,4 +1,4 @@
-# 📊 Estado del Proyecto MaquiLease (Actualizado 2026-05-13)
+# 📊 Estado del Proyecto MaquiLease (Actualizado 2026-05-21)
 
 Este documento centraliza el avance del sistema y las metas pendientes para la entrega final, alineado con la [Guía Maestra (PLAN.md)](../../Capstone/PLAN.md).
 
@@ -6,17 +6,17 @@ Este documento centraliza el avance del sistema y las metas pendientes para la e
 
 | Eje | Estado | % Est. | Notas |
 | :--- | :--- | :--- | :--- |
-| **1. Transaccional** | Avanzado | 85% | Backend completo (CRUDs, Firma, PDF). Frontend pendiente ContractDetail y PaymentsList. |
+| **1. Transaccional** | **Completado** | 100% | Backend y Frontend completamente funcionales (incluyendo detalle de contrato, wizard de creación, registro de pagos y recibos en PDF). |
 | **2. BI (Dashboards)** | **Completado** | 100% | Dashboard analítico finalizado con todas las métricas operativas y financieras integradas. |
 | **3. Sistema Inteligente** | **Completado** | 100% | Módulo IA activo (Risk Score, Pricing, Forecast, Segmentación). |
 | **4. Seguridad / Auth** | **Completado** | 100% | **Firebase Auth** integrado y sincronizado con base de datos local. |
 
 ---
 
-## 🕒 Actividad Reciente (Hoy 2026-05-13)
-- **Fase C (Dashboard BI)**: Finalización del tablero analítico con 6 visualizaciones (Morosidad, Tipos de Contrato, Segmentación IA, etc.).
-- **Fase D (Automatización)**: Implementación de *Background Jobs* en .NET para monitoreo de vencimientos y cálculo de penalidades cada 1 minuto (prueba, para produccion se usara el monitorio cada 24H).
-- **Alertas Proactivas**: Sistema de notificaciones en tiempo real con badge dinámico en el *header* y página de gestión `/alerts`.
+## 🕒 Actividad Reciente (Hoy 2026-05-21)
+- **Merge de la Rama Main**: Sincronización exitosa de todas las ramas de desarrollo. Se verificó que todos los componentes y servicios compilan al 100% sin errores.
+- **Fase E (Cierre Transaccional)**: Implementación y validación final de la **Vista de Detalle de Contrato** (`ContractDetail`) y el **Historial Global y Registro de Pagos** (`PaymentsList` / `registerPayment`) con descarga automatizada de recibos en PDF mediante QuestPDF.
+- **Soporte de Modo Oscuro Completo**: Integración final del modo oscuro en el panel de notificaciones y la interfaz del Sistema de IA.
 
 ---
 
@@ -40,7 +40,10 @@ Este documento centraliza el avance del sistema y las metas pendientes para la e
 - **Background Jobs**: Procesos automáticos (`DueDateMonitorJob` y `RiskScoreRecalcJob`) que evalúan moras y riesgos.
 - **Centro de Notificaciones**: UI reactiva con polling (cada 60s) en el *header* y un panel dedicado en `/alerts` para gestión de notificaciones.
 
-### ⚙️ Backend & Datos (Fase E parcial)
+### 💰 Cierre Transaccional & Datos (Fase E)
+- **Vista de Detalle de Contrato**: Visualización completa del cronograma de cuotas, estado individual y KPIs de pago por contrato.
+- **Registro y Gestión de Pagos**: Funcionalidad frontend para pagar cuotas pendientes/vencidas (parcial o total) con generación y descarga automática de recibo PDF.
+- **Historial Global de Pagos**: Panel centralizado `/payments` con estadísticas de recaudación y descarga directa de comprobantes.
 - **Modo Dual**: Soporte para `InMemory` (desarrollo rápido) y `SQL Server` (producción).
 - **Seed Data System**: Generación automática de 9 entidades pobladas para pruebas de integración.
 - **QuestPDF**: Generación de recibos de pago en PDF funcional.
@@ -53,11 +56,8 @@ Este documento centraliza el avance del sistema y las metas pendientes para la e
 
 ---
 
-## 🚀 Próximamente (Roadmap Pendiente)
-
-### 💰 Fase E: Cierre Transaccional
-- **Vista de Detalle de Contrato**: UI para visualizar cronograma de cuotas y estado individual del contrato.
-- **Gestión de Pagos**: Funcionalidad en el frontend para registrar el pago de cuotas e integrarlo con la generación de recibos PDF existente.
+## 🚀 Próximamente (Roadmap Pendiente / Futuro)
+- Ninguno pendiente para los objetivos Capstone obligatorios. Todo el alcance de las Fases A a E se encuentra al 100% completado y verificado en la rama actual.
 
 ---
 

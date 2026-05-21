@@ -25,6 +25,9 @@ namespace MaquiLease.API.Models.Entities
         
         [MaxLength(50)]
         public string? Category { get; set; }
+
+        public int? ServiceCategoryId { get; set; }
+        public ServiceCategory? ServiceCategory { get; set; }
         
         [Column(TypeName = "decimal(12,2)")]
         public decimal BasePrice { get; set; }
