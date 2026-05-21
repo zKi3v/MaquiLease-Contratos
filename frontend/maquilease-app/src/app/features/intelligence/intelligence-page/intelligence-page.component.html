@@ -113,7 +113,7 @@
             [max]="36"
             suffix=" meses"
             [showButtons]="true"
-            styleClass="w-8rem">
+            styleClass="w-full md:w-12rem">
           </p-inputNumber>
           <p-button
             label="Calcular Precio"
@@ -179,8 +179,8 @@
             </div>
             <p class="forecast-summary">{{ forecast.summary }}</p>
           </div>
-          <div class="chart-container glass-card" style="height: 420px;">
-            <p-chart type="line" [data]="forecastChartData" [options]="forecastChartOptions" [style]="{'height': '380px'}"></p-chart>
+          <div class="chart-container glass-card">
+            <p-chart type="line" [data]="forecastChartData" [options]="forecastChartOptions" height="340px"></p-chart>
           </div>
         </div>
         <div class="empty-state" *ngIf="forecastLoading">
@@ -199,7 +199,7 @@
           <div class="segment-overview">
             <div class="segment-chart glass-card">
               <h3>Distribución por Segmento</h3>
-              <p-chart type="doughnut" [data]="segmentChartData" [options]="segmentChartOptions" [style]="{'height': '280px'}"></p-chart>
+              <p-chart type="doughnut" [data]="segmentChartData" [options]="segmentChartOptions" height="280px"></p-chart>
             </div>
             <div class="segment-summary glass-card">
               <h3>Resumen</h3>
