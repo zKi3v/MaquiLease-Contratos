@@ -1,0 +1,154 @@
+<p-toast></p-toast>
+
+<div class="p-4 mx-auto" style="max-width: 1400px;">
+  <!-- Header Title -->
+  <div class="flex flex-column sm:flex-row justify-content-between align-items-start sm:align-items-center mb-4 gap-3">
+    <div>
+      <h1 class="m-0 text-3xl font-bold text-900 flex align-items-center gap-2">
+        <i class="pi pi-credit-card text-blue-600"></i> Historial de Recaudación y Pagos
+      </h1>
+      <p class="text-500 m-0 mt-1">Monitoree y descargue los comprobantes de cobro emitidos en el sistema.</p>
+    </div>
+    <div class="flex gap-2">
+      <button pButton icon="pi pi-refresh" class="p-button-outlined p-button-secondary" (click)="loadPayments()" [loading]="loading" label="Actualizar"></button>
+    </div>
+  </div>
+
+  <!-- Stats Grid -->
+  <div class="grid mb-4">
+    <div class="col-12 md:col-4">
+      <div class="card p-3 border-round surface-card shadow-1 flex justify-content-between align-items-center border-left-3 border-emerald-500">
+        <div>
+          <span class="text-500 font-semibold block mb-2 text-sm text-uppercase">Total Recaudado</span>
+          <span class="text-2xl font-bold text-emerald-600">{{ totalCollected | currency:'PEN':'S/. ' }}</span>
+        </div>
+        <div class="w-3rem h-3rem bg-emerald-100 border-round flex align-items-center justify-content-center">
+          <i class="pi pi-dollar text-emerald-600 text-xl"></i>
+        </div>
+      </div>
+    </div>
+    <div class="col-12 md:col-4">
+      <div class="card p-3 border-round surface-card shadow-1 flex justify-content-between align-items-center border-left-3 border-blue-500">
+        <div>
+          <span class="text-500 font-semibold block mb-2 text-sm text-uppercase">Transacciones Procesadas</span>
+          <span class="text-2xl font-bold text-blue-600">{{ transactionsCount }}</span>
+        </div>
+        <div class="w-3rem h-3rem bg-blue-100 border-round flex align-items-center justify-content-center">
+          <i class="pi pi-sync text-blue-600 text-xl"></i>
+        </div>
+      </div>
+    </div>
+    <div class="col-12 md:col-4">
+      <div class="card p-3 border-round surface-card shadow-1 flex justify-content-between align-items-center border-left-3 border-purple-500">
+        <div>
+          <span class="text-500 font-semibold block mb-2 text-sm text-uppercase">Cobro Promedio</span>
+          <span class="text-2xl font-bold text-purple-600">{{ averagePayment | currency:'PEN':'S/. ' }}</span>
+        </div>
+        <div class="w-3rem h-3rem bg-purple-100 border-round flex align-items-center justify-content-center">
+          <i class="pi pi-percentage text-purple-600 text-xl"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Payments Table Card -->
+  <div class="card p-4 border-round surface-card shadow-1">
+    <div class="flex justify-content-between align-items-center mb-3">
+      <h2 class="text-xl font-bold m-0 flex align-items-center gap-2">
+        <i class="pi pi-list text-blue-500"></i> Registro de Pagos Globale
+      </h2>
+      <!-- Filtro Global -->
+      <span class="p-input-icon-left">
+        <i class="pi pi-search"></i>
+        <input pInputText type="text" (input)="dt.filterGlobal($any($event.target).value, 'contains')" placeholder="Buscar pago..." class="p-inputtext-sm border-round" />
+      </span>
+    </div>
+
+    <p-table #dt 
+             [value]="payments" 
+             [loading]="loading" 
+             [paginator]="true" 
+             [rows]="10" 
+             [rowsPerPageOptions]="[10, 20, 50]"
+             styleClass="p-datatable-striped" 
+             responsiveLayout="stack" 
+             [breakpoint]="'960px'"
+             [globalFilterFields]="['referenceNumber', 'documentNumber', 'paymentMethod', 'documentType']">
+      <ng-template pTemplate="header">
+        <tr>
+          <th pSortableColumn="paymentId" style="width: 10%">ID Operación <p-sortIcon field="paymentId"></p-sortIcon></th>
+          <th pSortableColumn="documentNumber">Nro. Comprobante <p-sortIcon field="documentNumber"></p-sortIcon></th>
+          <th pSortableColumn="referenceNumber">Referencia <p-sortIcon field="referenceNumber"></p-sortIcon></th>
+          <th pSortableColumn="paymentMethod">Método de Pago <p-sortIcon field="paymentMethod"></p-sortIcon></th>
+          <th pSortableColumn="documentType">Tipo <p-sortIcon field="documentType"></p-sortIcon></th>
+          <th pSortableColumn="amount">Monto Cobrado <p-sortIcon field="amount"></p-sortIcon></th>
+          <th pSortableColumn="paymentDate">Fecha Cobro <p-sortIcon field="paymentDate"></p-sortIcon></th>
+          <th>Acción</th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-p>
+        <tr>
+          <td>
+            <span class="p-column-title">ID Operación</span>
+            <strong class="text-900">#{{ p.paymentId }}</strong>
+          </td>
+          <td>
+            <span class="p-column-title">Comprobante</span>
+            <span class="font-mono text-sm font-semibold text-blue-600">{{ p.documentNumber || 'N/A' }}</span>
+          </td>
+          <td>
+            <span class="p-column-title">Referencia</span>
+            <span class="text-500 font-medium">{{ p.referenceNumber || 'S/N' }}</span>
+          </td>
+          <td>
+            <span class="p-column-title">Método</span>
+            <span class="flex align-items-center gap-1">
+              <i class="pi" 
+                 [ngClass]="{
+                   'pi-sync text-blue-500': p.paymentMethod === 'transferencia',
+                   'pi-wallet text-orange-500': p.paymentMethod === 'efectivo',
+                   'pi-credit-card text-purple-500': p.paymentMethod === 'tarjeta'
+                 }"></i>
+              <span class="text-capitalize">{{ p.paymentMethod }}</span>
+            </span>
+          </td>
+          <td>
+            <span class="p-column-title">Tipo</span>
+            <span class="p-badge"
+                  [ngClass]="{
+                    'p-badge-info': p.documentType === 'boleta',
+                    'p-badge-success': p.documentType === 'factura'
+                  }">
+              {{ p.documentType | uppercase }}
+            </span>
+          </td>
+          <td>
+            <span class="p-column-title">Monto</span>
+            <span class="text-emerald-600 font-bold">{{ p.amount | currency:'PEN':'S/. ' }}</span>
+          </td>
+          <td>
+            <span class="p-column-title">Fecha</span>
+            <span>{{ p.paymentDate | date:'medium' }}</span>
+          </td>
+          <td>
+            <span class="p-column-title">Acción</span>
+            <button pButton icon="pi pi-file-pdf" 
+                    label="Recibo PDF" 
+                    class="p-button-outlined p-button-danger p-button-sm w-full md:w-auto" 
+                    pTooltip="Descargar recibo oficial QuestPDF"
+                    tooltipPosition="left"
+                    (click)="downloadReceiptPdf(p)">
+            </button>
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="8" class="text-center py-5 text-500">
+            No se han registrado pagos globales en la plataforma.
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
+</div>

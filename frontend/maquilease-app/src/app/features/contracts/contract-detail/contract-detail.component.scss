@@ -1,0 +1,182 @@
+/* ── PREMIUM STATUS-INDICATOR SIDE GLOWS FOR KPI CARDS ────── */
+.card {
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+
+  &.border-left-3 {
+    border-left-width: 4px !important;
+  }
+  
+  /* Blue glow */
+  &.border-blue-500 {
+    border-left-color: #3b82f6 !important;
+    &:hover {
+      box-shadow: 0 10px 25px -5px rgba(59, 130, 246, 0.15), var(--card-hover-shadow) !important;
+      background: linear-gradient(to right, rgba(59, 130, 246, 0.02), transparent) !important;
+    }
+  }
+
+  /* Emerald glow */
+  &.border-emerald-500 {
+    border-left-color: #10b981 !important;
+    &:hover {
+      box-shadow: 0 10px 25px -5px rgba(16, 185, 129, 0.15), var(--card-hover-shadow) !important;
+      background: linear-gradient(to right, rgba(16, 185, 129, 0.02), transparent) !important;
+    }
+  }
+
+  /* Orange glow */
+  &.border-orange-500 {
+    border-left-color: #f59e0b !important;
+    &:hover {
+      box-shadow: 0 10px 25px -5px rgba(245, 158, 11, 0.15), var(--card-hover-shadow) !important;
+      background: linear-gradient(to right, rgba(245, 158, 11, 0.02), transparent) !important;
+    }
+  }
+
+  /* Red glow */
+  &.border-red-500 {
+    border-left-color: #ef4444 !important;
+    &:hover {
+      box-shadow: 0 10px 25px -5px rgba(239, 68, 68, 0.15), var(--card-hover-shadow) !important;
+      background: linear-gradient(to right, rgba(239, 68, 68, 0.02), transparent) !important;
+    }
+  }
+}
+
+html[data-theme="dark"] {
+  .card {
+    &.border-blue-500:hover {
+      background: linear-gradient(to right, rgba(59, 130, 246, 0.08), transparent) !important;
+    }
+    &.border-emerald-500:hover {
+      background: linear-gradient(to right, rgba(16, 185, 129, 0.08), transparent) !important;
+    }
+    &.border-orange-500:hover {
+      background: linear-gradient(to right, rgba(245, 158, 11, 0.08), transparent) !important;
+    }
+    &.border-red-500:hover {
+      background: linear-gradient(to right, rgba(239, 68, 68, 0.08), transparent) !important;
+    }
+  }
+}
+
+/* ── BLOCKCHAIN INTEGRITY CONTAINER ──────────────────────── */
+.bg-blue-50 {
+  background-color: rgba(59, 130, 246, 0.04) !important;
+  border: 1px solid rgba(59, 130, 246, 0.15) !important;
+  border-left: 4px solid #3b82f6 !important;
+  box-shadow: 0 4px 15px rgba(59, 130, 246, 0.05);
+  transition: all 0.3s ease;
+  border-radius: 10px;
+
+  &:hover {
+    box-shadow: 0 4px 20px rgba(59, 130, 246, 0.15);
+    background-color: rgba(59, 130, 246, 0.07) !important;
+  }
+  
+  code {
+    color: var(--primary-color) !important;
+    font-size: 0.76rem !important;
+    line-height: 1.4;
+    padding: 0.5rem;
+    background: rgba(15, 23, 42, 0.03);
+    border-radius: 6px;
+    display: block;
+    margin: 0.5rem 0;
+    border: 1px dashed rgba(59, 130, 246, 0.25);
+  }
+}
+
+html[data-theme="dark"] {
+  .bg-blue-50 {
+    background-color: rgba(59, 130, 246, 0.07) !important;
+    border-color: rgba(59, 130, 246, 0.25) !important;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+
+    &:hover {
+      box-shadow: 0 4px 25px rgba(59, 130, 246, 0.2);
+      background-color: rgba(59, 130, 246, 0.1) !important;
+    }
+
+    code {
+      background: rgba(15, 23, 42, 0.4);
+      color: #60a5fa !important;
+      border-color: rgba(59, 130, 246, 0.35);
+    }
+  }
+}
+
+/* ── OVERDUE ROW PASTELES & NEONS ────────────────────────── */
+:host ::ng-deep {
+  .p-datatable-tbody > tr.bg-red-50 {
+    background-color: rgba(239, 68, 68, 0.03) !important;
+    box-shadow: inset 4px 0 0 0 #ef4444 !important;
+    
+    &:hover {
+      background-color: rgba(239, 68, 68, 0.06) !important;
+      transform: translateX(4px);
+    }
+  }
+
+  .bg-red-50 {
+    background-color: rgba(239, 68, 68, 0.03) !important;
+    border-left: 3px solid #ef4444 !important;
+  }
+}
+
+html[data-theme="dark"] :host ::ng-deep {
+  .p-datatable-tbody > tr.bg-red-50 {
+    background-color: rgba(239, 68, 68, 0.06) !important;
+    
+    &:hover {
+      background-color: rgba(239, 68, 68, 0.1) !important;
+    }
+  }
+
+  .bg-red-50 {
+    background-color: rgba(239, 68, 68, 0.06) !important;
+  }
+}
+
+/* ── MODERN BADGES ────────────────────────────────────────── */
+.p-badge {
+  font-family: 'Outfit', sans-serif !important;
+  font-weight: 600 !important;
+  font-size: 0.72rem !important;
+  padding: 0.25rem 0.65rem !important;
+  border-radius: 6px !important;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  border: 1px solid transparent;
+
+  &.p-badge-success {
+    background-color: rgba(34, 197, 94, 0.12) !important;
+    color: #22c55e !important;
+    border-color: rgba(34, 197, 94, 0.2) !important;
+  }
+  &.p-badge-warning {
+    background-color: rgba(245, 158, 11, 0.12) !important;
+    color: #f59e0b !important;
+    border-color: rgba(245, 158, 11, 0.2) !important;
+  }
+  &.p-badge-info {
+    background-color: rgba(59, 130, 246, 0.12) !important;
+    color: #3b82f6 !important;
+    border-color: rgba(59, 130, 246, 0.2) !important;
+  }
+  &.p-badge-danger {
+    background-color: rgba(239, 68, 68, 0.12) !important;
+    color: #ef4444 !important;
+    border-color: rgba(239, 68, 68, 0.2) !important;
+  }
+}
+
+/* ── MODAL PAYMENT INFO BOX ────────────────────────────────── */
+.bg-gray-100 {
+  background-color: var(--surface-b) !important;
+  border: 1px solid var(--glass-border) !important;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.02);
+  border-radius: 10px;
+}

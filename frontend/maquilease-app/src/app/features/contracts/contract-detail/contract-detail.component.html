@@ -1,0 +1,319 @@
+<p-toast></p-toast>
+
+<div class="p-4 mx-auto" style="max-width: 1200px;">
+  <!-- Header & Back Button -->
+  <div class="flex flex-column sm:flex-row justify-content-between align-items-start sm:align-items-center mb-4 gap-3">
+    <div>
+      <a routerLink="/contracts" class="text-blue-500 hover:text-blue-700 text-sm font-semibold no-underline flex align-items-center gap-1 cursor-pointer mb-2">
+        <i class="pi pi-arrow-left"></i> Volver a Contratos
+      </a>
+      <h1 class="m-0 text-3xl font-bold text-900 flex align-items-center gap-2">
+        Contrato: <span class="text-blue-600">{{ contract?.contractNumber }}</span>
+        <span *ngIf="contract" class="p-badge" 
+              [ngClass]="{
+                'p-badge-success': contract.status === 'activo',
+                'p-badge-warning': contract.status === 'borrador',
+                'p-badge-info': contract.status === 'completado',
+                'p-badge-danger': contract.status === 'cancelado'
+              }">
+          {{ contract.status | uppercase }}
+        </span>
+      </h1>
+    </div>
+    <div class="flex gap-2">
+      <button pButton icon="pi pi-refresh" class="p-button-outlined p-button-secondary" (click)="loadContractDetails()" [loading]="loading" label="Actualizar"></button>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading && !contract" class="flex justify-content-center align-items-center py-8">
+    <i class="pi pi-spin pi-spinner text-4xl text-blue-500"></i>
+  </div>
+
+  <!-- Main Content (when contract loaded) -->
+  <div *ngIf="contract">
+    <!-- Grid de KPIs -->
+    <div class="grid mb-4">
+      <div class="col-12 sm:col-6 lg:col-3">
+        <div class="card p-3 border-round surface-card shadow-1 flex justify-content-between align-items-center border-left-3 border-blue-500">
+          <div>
+            <span class="text-500 font-semibold block mb-2 text-sm text-uppercase">Monto Total</span>
+            <span class="text-2xl font-bold text-900">{{ contract.totalAmount | currency:'PEN':'S/. ' }}</span>
+          </div>
+          <div class="w-3rem h-3rem bg-blue-100 border-round flex align-items-center justify-content-center">
+            <i class="pi pi-money-bill text-blue-600 text-xl"></i>
+          </div>
+        </div>
+      </div>
+      <div class="col-12 sm:col-6 lg:col-3">
+        <div class="card p-3 border-round surface-card shadow-1 flex justify-content-between align-items-center border-left-3 border-success border-emerald-500">
+          <div>
+            <span class="text-500 font-semibold block mb-2 text-sm text-uppercase">Total Cobrado</span>
+            <span class="text-2xl font-bold text-emerald-600">{{ totalPaid | currency:'PEN':'S/. ' }}</span>
+          </div>
+          <div class="w-3rem h-3rem bg-emerald-100 border-round flex align-items-center justify-content-center">
+            <i class="pi pi-check-circle text-emerald-600 text-xl"></i>
+          </div>
+        </div>
+      </div>
+      <div class="col-12 sm:col-6 lg:col-3">
+        <div class="card p-3 border-round surface-card shadow-1 flex justify-content-between align-items-center border-left-3 border-orange-500">
+          <div>
+            <span class="text-500 font-semibold block mb-2 text-sm text-uppercase">Saldo Pendiente</span>
+            <span class="text-2xl font-bold text-orange-600">{{ totalPending | currency:'PEN':'S/. ' }}</span>
+          </div>
+          <div class="w-3rem h-3rem bg-orange-100 border-round flex align-items-center justify-content-center">
+            <i class="pi pi-wallet text-orange-600 text-xl"></i>
+          </div>
+        </div>
+      </div>
+      <div class="col-12 sm:col-6 lg:col-3">
+        <div class="card p-3 border-round surface-card shadow-1 flex justify-content-between align-items-center border-left-3 border-red-500"
+             [ngClass]="{'bg-red-50': overdueCount > 0}">
+          <div>
+            <span class="text-500 font-semibold block mb-2 text-sm text-uppercase">Cuotas Vencidas</span>
+            <span class="text-2xl font-bold" [ngClass]="{'text-red-600': overdueCount > 0, 'text-900': overdueCount === 0}">{{ overdueCount }}</span>
+          </div>
+          <div class="w-3rem h-3rem border-round flex align-items-center justify-content-center"
+               [ngClass]="{'bg-red-100': overdueCount > 0, 'bg-gray-100': overdueCount === 0}">
+            <i class="pi pi-exclamation-triangle text-xl" [ngClass]="{'text-red-600': overdueCount > 0, 'text-500': overdueCount === 0}"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Fichas de Detalles -->
+    <div class="grid mb-4">
+      <!-- Ficha Contrato -->
+      <div class="col-12 md:col-7">
+        <div class="card p-4 border-round surface-card shadow-1 h-full">
+          <h2 class="text-xl font-bold mb-3 border-bottom-1 pb-2 border-200 flex align-items-center gap-2">
+            <i class="pi pi-file text-blue-500"></i> Información General del Contrato
+          </h2>
+          <div class="grid">
+            <div class="col-6 mb-3">
+              <span class="text-500 font-semibold block text-sm">Tipo de Contrato</span>
+              <span class="text-900 font-medium text-lg text-capitalize">{{ contract.contractType }}</span>
+            </div>
+            <div class="col-6 mb-3">
+              <span class="text-500 font-semibold block text-sm">Frecuencia de Pago</span>
+              <span class="text-900 font-medium text-lg text-capitalize">{{ contract.paymentFrequency }}</span>
+            </div>
+            <div class="col-6 mb-3">
+              <span class="text-500 font-semibold block text-sm">Fecha de Inicio</span>
+              <span class="text-900 font-medium">{{ contract.startDate | date:'longDate' }}</span>
+            </div>
+            <div class="col-6 mb-3">
+              <span class="text-500 font-semibold block text-sm">Fecha de Finalización</span>
+              <span class="text-900 font-medium">{{ contract.endDate | date:'longDate' }}</span>
+            </div>
+            <div class="col-6">
+              <span class="text-500 font-semibold block text-sm">Fecha Registro Sistema</span>
+              <span class="text-900 text-sm font-medium">{{ contract.createdAt | date:'short' }}</span>
+            </div>
+            <div class="col-6">
+              <span class="text-500 font-semibold block text-sm">Moneda</span>
+              <span class="text-900 font-medium text-uppercase">{{ contract.currency === 'usd' ? 'Dólares (USD)' : 'Soles (PEN)' }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Ficha Partes -->
+      <div class="col-12 md:col-5">
+        <div class="card p-4 border-round surface-card shadow-1 h-full flex flex-column justify-content-between">
+          <div>
+            <h2 class="text-xl font-bold mb-3 border-bottom-1 pb-2 border-200 flex align-items-center gap-2">
+              <i class="pi pi-users text-blue-500"></i> Partes y Recursos Involucrados
+            </h2>
+            <div class="flex flex-column gap-3">
+              <div class="flex align-items-center gap-2">
+                <i class="pi pi-id-card text-xl text-600"></i>
+                <div>
+                  <span class="text-500 text-xs block">Cliente / Arrendatario</span>
+                  <span class="text-900 font-semibold">{{ contract.clientName }}</span>
+                </div>
+              </div>
+              <div class="flex align-items-center gap-2" *ngIf="contract.assetCode">
+                <i class="pi pi-truck text-xl text-blue-500"></i>
+                <div>
+                  <span class="text-500 text-xs block">Maquinaria Arrendada</span>
+                  <span class="text-blue-600 font-semibold cursor-pointer hover:underline" routerLink="/assets">{{ contract.assetCode }}</span>
+                </div>
+              </div>
+              <div class="flex align-items-center gap-2" *ngIf="contract.serviceName">
+                <i class="pi pi-wrench text-xl text-orange-500"></i>
+                <div>
+                  <span class="text-500 text-xs block">Servicio de Soporte Incluido</span>
+                  <span class="text-orange-600 font-semibold">{{ contract.serviceName }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Hash de Integridad -->
+          <div class="mt-4 p-3 bg-blue-50 border-round border-left-3 border-blue-500" *ngIf="contract.signatureHash">
+            <span class="text-blue-800 font-bold block text-xs flex align-items-center gap-1 mb-1">
+              <i class="pi pi-shield"></i> INTEGRIDAD Y FIRMA DIGITAL
+            </span>
+            <code class="text-blue-900 block text-xs break-all font-mono select-all">
+              {{ contract.signatureHash }}
+            </code>
+            <span class="text-blue-600 text-xxs font-semibold mt-1 block flex align-items-center gap-1">
+              <i class="pi pi-lock"></i> Firmado electrónicamente mediante algoritmo SHA-256
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cronograma de Pagos -->
+    <div class="card p-4 border-round surface-card shadow-1 mb-4">
+      <div class="flex justify-content-between align-items-center mb-3">
+        <h2 class="text-2xl font-bold m-0 flex align-items-center gap-2">
+          <i class="pi pi-calendar text-blue-500"></i> Cronograma de Cuotas
+        </h2>
+      </div>
+
+      <p-table [value]="contract.installments || []" styleClass="p-datatable-striped" responsiveLayout="stack" [breakpoint]="'960px'">
+        <ng-template pTemplate="header">
+          <tr>
+            <th style="width: 5%">#</th>
+            <th>Fecha Vencimiento</th>
+            <th>Monto Cuota</th>
+            <th>Mora / Penalidad</th>
+            <th>Monto Cobrado</th>
+            <th>Estado</th>
+            <th>Acción</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-inst>
+          <tr [ngClass]="{'bg-red-50': isInstallmentOverdue(inst)}">
+            <td>
+              <span class="p-column-title">Cuota</span>
+              <strong class="text-900">#{{ inst.installmentNumber }}</strong>
+            </td>
+            <td>
+              <span class="p-column-title">Vencimiento</span>
+              <span [ngClass]="{'text-red-600 font-bold': isInstallmentOverdue(inst)}">
+                {{ inst.dueDate | date:'mediumDate' }}
+                <span *ngIf="isInstallmentOverdue(inst)" class="ml-1 p-badge p-badge-danger text-xxs" style="font-size: 0.65rem; padding: 2px 6px;">VENCIDA</span>
+              </span>
+            </td>
+            <td>
+              <span class="p-column-title">Monto</span>
+              <span class="text-900 font-medium">{{ inst.amount | currency:'PEN':'S/. ' }}</span>
+            </td>
+            <td>
+              <span class="p-column-title">Penalidad</span>
+              <span [ngClass]="{'text-red-500 font-bold': inst.penaltyAmount > 0}">{{ inst.penaltyAmount | currency:'PEN':'S/. ' }}</span>
+            </td>
+            <td>
+              <span class="p-column-title">Pagado</span>
+              <span class="text-emerald-600 font-medium">{{ inst.paidAmount | currency:'PEN':'S/. ' }}</span>
+            </td>
+            <td>
+              <span class="p-column-title">Estado</span>
+              <span class="p-badge" 
+                    [ngClass]="{
+                      'p-badge-success': inst.status === 'pagado',
+                      'p-badge-warning': inst.status === 'pendiente',
+                      'p-badge-info': inst.status === 'parcial'
+                    }">
+                {{ inst.status | uppercase }}
+              </span>
+            </td>
+            <td>
+              <span class="p-column-title">Acción</span>
+              <button pButton icon="pi pi-wallet" 
+                      label="Cobrar" 
+                      class="p-button-success p-button-sm w-full md:w-auto" 
+                      *ngIf="inst.status !== 'pagado'" 
+                      (click)="openPayment(inst)">
+              </button>
+              <span *ngIf="inst.status === 'pagado'" class="text-emerald-600 font-bold text-sm flex align-items-center gap-1">
+                <i class="pi pi-check"></i> Completado
+              </span>
+            </td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage">
+          <tr>
+            <td colspan="7" class="text-center py-4 text-500">
+              No se han generado cuotas para este contrato.
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Pagar Cuota -->
+<p-dialog header="Registrar Recaudo de Cuota #{{ selectedInstallment?.installmentNumber }}" 
+          [(visible)]="displayPaymentModal" 
+          [modal]="true" 
+          [style]="{width: '100%', maxWidth: '480px'}" 
+          [breakpoints]="{ '960px': '75vw', '641px': '95vw' }"
+          [draggable]="false" 
+          [resizable]="false"
+          styleClass="p-fluid">
+  
+  <div class="py-2" *ngIf="selectedInstallment">
+    <!-- Información de Cuota en Modal -->
+    <div class="p-3 bg-gray-100 border-round mb-4 text-sm flex flex-column gap-2 text-700">
+      <div class="flex justify-content-between">
+        <span>Monto Cuota Base:</span>
+        <strong class="text-900">{{ selectedInstallment.amount | currency:'PEN':'S/. ' }}</strong>
+      </div>
+      <div class="flex justify-content-between" *ngIf="selectedInstallment.penaltyAmount > 0">
+        <span>Mora Acumulada:</span>
+        <strong class="text-red-600">+ {{ selectedInstallment.penaltyAmount | currency:'PEN':'S/. ' }}</strong>
+      </div>
+      <div class="flex justify-content-between" *ngIf="selectedInstallment.paidAmount > 0">
+        <span>Abonado Previamente:</span>
+        <strong class="text-emerald-600">- {{ selectedInstallment.paidAmount | currency:'PEN':'S/. ' }}</strong>
+      </div>
+      <hr class="border-top-1 border-300 my-1">
+      <div class="flex justify-content-between font-bold text-lg">
+        <span class="text-900">Total Neto Pendiente:</span>
+        <span class="text-blue-600">{{ (selectedInstallment.amount + selectedInstallment.penaltyAmount) - selectedInstallment.paidAmount | currency:'PEN':'S/. ' }}</span>
+      </div>
+    </div>
+
+    <!-- Campos de Entrada -->
+    <div class="field mb-3">
+      <label for="amount" class="font-bold block mb-1">Monto a Cobrar (S/.)</label>
+      <p-inputNumber id="amount" 
+                     [(ngModel)]="paymentForm.amount" 
+                     mode="decimal" 
+                     [minFractionDigits]="2" 
+                     [maxFractionDigits]="2"
+                     placeholder="Ingrese monto a pagar">
+      </p-inputNumber>
+    </div>
+    
+    <div class="field mb-3">
+      <label for="paymentMethod" class="font-bold block mb-1">Método de Pago</label>
+      <p-dropdown id="paymentMethod" 
+                  [options]="paymentMethods" 
+                  [(ngModel)]="paymentForm.paymentMethod" 
+                  appendTo="body">
+      </p-dropdown>
+    </div>
+
+    <div class="field mb-4">
+      <label for="documentType" class="font-bold block mb-1">Tipo de Comprobante</label>
+      <p-dropdown id="documentType" 
+                  [options]="documentTypes" 
+                  [(ngModel)]="paymentForm.documentType" 
+                  appendTo="body">
+      </p-dropdown>
+    </div>
+  </div>
+
+  <ng-template pTemplate="footer">
+    <button pButton label="Cancelar" icon="pi pi-times" class="p-button-text p-button-secondary" (click)="displayPaymentModal = false"></button>
+    <button pButton label="Registrar y Generar PDF" icon="pi pi-file-pdf" class="p-button-success" (click)="processPayment()"></button>
+  </ng-template>
+</p-dialog>

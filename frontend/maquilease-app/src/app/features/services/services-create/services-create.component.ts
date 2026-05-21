@@ -7,13 +7,15 @@ import { InputTextModule } from 'primeng/inputtext';
 import { InputNumberModule } from 'primeng/inputnumber';
 import { DropdownModule } from 'primeng/dropdown';
 import { CheckboxModule } from 'primeng/checkbox';
+import { AutoCompleteModule } from 'primeng/autocomplete';
 import { ServiceObj as ServiceDto } from '../../services-catalog/models/service.interface';
 import { ServiceCatalogService as ServiceService } from '../../services-catalog/services/service-catalog.service';
+import { CatalogService } from '../../../core/services/catalog.service';
 
 @Component({
   selector: 'app-services-create',
   standalone: true,
-  imports: [CommonModule, FormsModule, ButtonModule, InputTextModule, InputNumberModule, DropdownModule, CheckboxModule],
+  imports: [CommonModule, FormsModule, ButtonModule, InputTextModule, InputNumberModule, DropdownModule, CheckboxModule, AutoCompleteModule],
   template: `
     <div class="card p-3 m-3 surface-card border-round shadow-2">
       <div class="flex justify-content-between align-items-center mb-4">
@@ -36,7 +38,17 @@ import { ServiceCatalogService as ServiceService } from '../../services-catalog/
         </div>
         <div class="field col-12 md:col-6">
           <label for="category">Categoría</label>
-          <input pInputText id="category" [(ngModel)]="serviceForm.category" />
+          <p-autoComplete id="category" 
+            [(ngModel)]="serviceForm.category" 
+            [suggestions]="filteredCategories" 
+            (completeMethod)="filterCategories($event)" 
+            [completeOnFocus]="true"
+            [minLength]="0"
+            (click)="ac.handleDropdownClick($event)" 
+            #ac 
+            placeholder="Seleccione o escriba una Categoría"
+            [dropdown]="false">
+          </p-autoComplete>
         </div>
         <div class="field col-12 md:col-4">
           <label for="basePrice">Precio Base *</label>
@@ -73,6 +85,7 @@ export class ServicesCreateComponent implements OnInit {
   router = inject(Router);
   route = inject(ActivatedRoute);
   servicesService = inject(ServiceService);
+  catalogService = inject(CatalogService);
 
   serviceForm: ServiceDto = {
     serviceId: 0,
@@ -108,9 +121,12 @@ export class ServicesCreateComponent implements OnInit {
     { label: 'Por Kilómetro', value: 'km' }
   ];
 
+  categories: string[] = [];
+  filteredCategories: string[] = [];
   isEdit = false;
 
   ngOnInit() {
+    this.loadCategories();
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
       this.isEdit = true;
@@ -119,6 +135,17 @@ export class ServicesCreateComponent implements OnInit {
         this.serviceForm = { ...statedService };
       }
     }
+  }
+
+  loadCategories() {
+    this.catalogService.getServiceCategories().subscribe(data => {
+      this.categories = data.map(c => c.name);
+    });
+  }
+
+  filterCategories(event: any) {
+    const query = event.query || '';
+    this.filteredCategories = this.categories.filter(c => c.includes(query));
   }
 
   saveService() {

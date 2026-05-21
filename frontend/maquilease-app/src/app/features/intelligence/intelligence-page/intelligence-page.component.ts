@@ -12,6 +12,7 @@ import { TableModule } from 'primeng/table';
 import { CardModule } from 'primeng/card';
 import { TooltipModule } from 'primeng/tooltip';
 import { InputNumberModule } from 'primeng/inputnumber';
+import { SliderModule } from 'primeng/slider';
 import { ThemeService } from '../../../core/services/theme.service';
 import { ApiService } from '../../../core/services/api.service';
 import {
@@ -22,7 +23,11 @@ import {
   RevenueForecast,
   ForecastBandPoint,
   SegmentationSummary,
-  ClientSegment
+  ClientSegment,
+  AssetHealth,
+  MatchmakerRecommendation,
+  RiskSimulationRequest,
+  SimulatedRisk
 } from '../../../core/services/intelligence.service';
 
 interface ClientOption {
@@ -41,7 +46,7 @@ interface AssetOption {
   imports: [
     CommonModule, FormsModule, ChartModule, TabViewModule, KnobModule,
     DropdownModule, ButtonModule, TagModule, ProgressBarModule,
-    TableModule, CardModule, TooltipModule, InputNumberModule
+    TableModule, CardModule, TooltipModule, InputNumberModule, SliderModule
   ],
   templateUrl: './intelligence-page.component.html',
   styleUrls: ['./intelligence-page.component.scss']
@@ -77,6 +82,31 @@ export class IntelligencePageComponent implements OnInit {
   segmentChartOptions: any = null;
   segmentationLoading = false;
 
+  // ── Asset Health ──────────────────────────────
+  assetHealths: AssetHealth[] = [];
+  healthLoading = false;
+
+  // ── Matchmaker ────────────────────────────────
+  matchmakerRecs: MatchmakerRecommendation[] = [];
+  matchmakerLoading = false;
+
+  // ── Simulator ─────────────────────────────────
+  simSector: string = 'agroindustrial';
+  simTotalAmount: number = 80000;
+  simDownPayment: number = 10000;
+  simInstallmentsCount: number = 12;
+  simOnTimePaymentRate: number = 90;
+  simResult: SimulatedRisk | null = null;
+  simLoading = false;
+
+  sectors = [
+    { label: 'Agroindustrial', value: 'agroindustrial' },
+    { label: 'Minería', value: 'mineria' },
+    { label: 'Construcción', value: 'construccion' },
+    { label: 'Transporte', value: 'transporte' },
+    { label: 'Manufactura', value: 'manufactura' }
+  ];
+
   constructor() {
     effect(() => {
       const isDark = this.themeService.isDarkMode();
@@ -91,6 +121,9 @@ export class IntelligencePageComponent implements OnInit {
     this.loadAssets();
     this.loadForecast();
     this.loadSegmentation();
+    this.loadAssetHealth();
+    this.loadMatchmaker();
+    this.runSimulation();
   }
 
   // ── Data Loaders ─────────────────────────────
@@ -306,5 +339,92 @@ export class IntelligencePageComponent implements OnInit {
       },
       cutout: '55%'
     };
+  }
+
+  // ── 5. Asset Health ──────────────────────────
+  loadAssetHealth() {
+    this.healthLoading = true;
+    this.intelligenceService.getAssetHealth().subscribe({
+      next: (data) => {
+        this.assetHealths = data;
+        this.healthLoading = false;
+      },
+      error: () => this.healthLoading = false
+    });
+  }
+
+  getHealthColor(healthIndex: number): string {
+    if (healthIndex >= 76) return '#22c55e'; // Green
+    if (healthIndex >= 41) return '#eab308'; // Yellow
+    return '#ef4444'; // Red
+  }
+
+  getHealthSeverity(healthIndex: number): "success" | "info" | "warning" | "danger" | "secondary" | "contrast" | undefined {
+    if (healthIndex >= 76) return 'success';
+    if (healthIndex >= 41) return 'warning';
+    return 'danger';
+  }
+
+  // ── 6. Matchmaker ────────────────────────────
+  loadMatchmaker() {
+    this.matchmakerLoading = true;
+    this.intelligenceService.getMatchmaker().subscribe({
+      next: (data) => {
+        this.matchmakerRecs = data;
+        this.matchmakerLoading = false;
+      },
+      error: () => this.matchmakerLoading = false
+    });
+  }
+
+  getAffinityColor(score: number): string {
+    if (score >= 80) return '#22c55e';
+    if (score >= 65) return '#3b82f6';
+    return '#64748b';
+  }
+
+  getConfidenceSeverity(level: string): "success" | "info" | "warning" | "danger" | "secondary" | "contrast" | undefined {
+    switch (level) {
+      case 'Alta': return 'success';
+      case 'Media': return 'warning';
+      case 'Baja': return 'danger';
+      default: return 'info';
+    }
+  }
+
+  // ── 7. Simulator ─────────────────────────────
+  runSimulation() {
+    this.simLoading = true;
+    const request: RiskSimulationRequest = {
+      sector: this.simSector,
+      totalAmount: this.simTotalAmount,
+      downPayment: this.simDownPayment,
+      installmentsCount: this.simInstallmentsCount,
+      onTimePaymentRate: this.simOnTimePaymentRate
+    };
+    this.intelligenceService.simulateRisk(request).subscribe({
+      next: (data) => {
+        this.simResult = data;
+        this.simLoading = false;
+      },
+      error: () => this.simLoading = false
+    });
+  }
+
+  getSimRiskColor(score: number): string {
+    if (score <= 25) return '#22c55e';
+    if (score <= 50) return '#eab308';
+    if (score <= 75) return '#f97316';
+    return '#ef4444';
+  }
+
+  getSimSeverity(category: string): "success" | "info" | "warning" | "danger" | "secondary" | "contrast" | undefined {
+    switch (category) {
+      case 'Bajo': return 'success';
+      case 'Medio': return 'warning';
+      case 'Alto': return 'warning';
+      case 'Crítico': return 'danger';
+      default: return 'info';
+    }
   }
 }

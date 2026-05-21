@@ -62,6 +62,14 @@ export const routes: Routes = [
         loadComponent: () => import('./features/contracts/contracts-create/contracts-create.component').then(m => m.ContractsCreateComponent)
       },
       {
+        path: 'contracts/:id',
+        loadComponent: () => import('./features/contracts/contract-detail/contract-detail.component').then(m => m.ContractDetailComponent)
+      },
+      {
+        path: 'payments',
+        loadComponent: () => import('./features/payments/payments-list/payments-list.component').then(m => m.PaymentsListComponent)
+      },
+      {
         path: 'intelligence',
         loadComponent: () => import('./features/intelligence/intelligence-page/intelligence-page.component').then(m => m.IntelligencePageComponent)
       },

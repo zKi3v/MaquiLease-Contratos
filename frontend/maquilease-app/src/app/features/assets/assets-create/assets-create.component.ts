@@ -6,13 +6,15 @@ import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { InputNumberModule } from 'primeng/inputnumber';
 import { DropdownModule } from 'primeng/dropdown';
+import { AutoCompleteModule } from 'primeng/autocomplete';
 import { Asset } from '../models/asset.interface';
 import { AssetService } from '../services/asset.service';
+import { CatalogService } from '../../../core/services/catalog.service';
 
 @Component({
   selector: 'app-assets-create',
   standalone: true,
-  imports: [CommonModule, FormsModule, ButtonModule, InputTextModule, InputNumberModule, DropdownModule],
+  imports: [CommonModule, FormsModule, ButtonModule, InputTextModule, InputNumberModule, DropdownModule, AutoCompleteModule],
   template: `
     <div class="card p-3 m-3 surface-card border-round shadow-2">
       <div class="flex justify-content-between align-items-center mb-4">
@@ -31,11 +33,31 @@ import { AssetService } from '../services/asset.service';
         </div>
         <div class="field col-12 md:col-6">
           <label for="category">Categoría</label>
-          <input pInputText id="category" [(ngModel)]="assetForm.category" />
+          <p-autoComplete id="category" 
+            [(ngModel)]="assetForm.category" 
+            [suggestions]="filteredCategories" 
+            (completeMethod)="filterCategories($event)" 
+            [completeOnFocus]="true"
+            [minLength]="0"
+            (click)="acCat.handleDropdownClick($event)" 
+            #acCat 
+            placeholder="Seleccione o escriba una Categoría"
+            [dropdown]="false">
+          </p-autoComplete>
         </div>
         <div class="field col-12 md:col-6">
           <label for="brand">Marca</label>
-          <input pInputText id="brand" [(ngModel)]="assetForm.brand" />
+          <p-autoComplete id="brand" 
+            [(ngModel)]="assetForm.brand" 
+            [suggestions]="filteredBrands" 
+            (completeMethod)="filterBrands($event)" 
+            [completeOnFocus]="true"
+            [minLength]="0"
+            (click)="acBrand.handleDropdownClick($event)" 
+            #acBrand 
+            placeholder="Seleccione o escriba una Marca"
+            [dropdown]="false">
+          </p-autoComplete>
         </div>
         <div class="field col-12 md:col-6">
           <label for="model">Modelo</label>
@@ -74,6 +96,7 @@ export class AssetsCreateComponent implements OnInit {
   router = inject(Router);
   route = inject(ActivatedRoute);
   assetsService = inject(AssetService);
+  catalogService = inject(CatalogService);
 
   assetForm: Asset = {
     assetId: 0,
@@ -97,9 +120,14 @@ export class AssetsCreateComponent implements OnInit {
     { label: 'Vendido', value: 'vendido' }
   ];
 
+  categories: string[] = [];
+  filteredCategories: string[] = [];
+  brands: string[] = [];
+  filteredBrands: string[] = [];
   isEdit = false;
 
   ngOnInit() {
+    this.loadCatalogs();
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
       this.isEdit = true;
@@ -108,6 +136,25 @@ export class AssetsCreateComponent implements OnInit {
         this.assetForm = { ...statedAsset };
       }
     }
+  }
+
+  loadCatalogs() {
+    this.catalogService.getAssetCategories().subscribe(data => {
+      this.categories = data.map(c => c.name);
+    });
+    this.catalogService.getAssetBrands().subscribe(data => {
+      this.brands = data.map(b => b.name);
+    });
+  }
+
+  filterCategories(event: any) {
+    const query = event.query || '';
+    this.filteredCategories = this.categories.filter(c => c.includes(query));
+  }
+
+  filterBrands(event: any) {
+    const query = event.query || '';
+    this.filteredBrands = this.brands.filter(b => b.includes(query));
   }
 
   saveAsset() {

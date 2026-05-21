@@ -474,6 +474,314 @@ namespace MaquiLease.API.Intelligence
         }
 
         // ═══════════════════════════════════════════════════════════
+        // 5. ASSET HEALTH & PREDICTIVE MAINTENANCE
+        // ═══════════════════════════════════════════════════════════
+        public async Task<List<AssetHealthDto>> GetAssetHealthAnalysis()
+        {
+            var assets = await _context.Assets
+                .Include(a => a.Contracts)
+                .ToListAsync();
+            var allAlerts = await _context.Alerts.ToListAsync();
+
+            var result = new List<AssetHealthDto>();
+
+            foreach (var asset in assets)
+            {
+                decimal healthIndex = 100m;
+
+                // Factor 1: Antigüedad de compra (Max -30 pts)
+                double ageMonths = asset.PurchaseDate.HasValue
+                    ? (DateTime.UtcNow - asset.PurchaseDate.Value).TotalDays / 30.0
+                    : 0;
+                decimal ageDeduction = Math.Min((decimal)ageMonths * 0.5m, 30m);
+                healthIndex -= ageDeduction;
+
+                // Factor 2: Uso comercial (Contratos históricos) (Max -20 pts)
+                int contractsCount = asset.Contracts.Count;
+                decimal contractsDeduction = Math.Min(contractsCount * 5m, 20m);
+                healthIndex -= contractsDeduction;
+
+                // Factor 3: Depreciación de valor (Max -20 pts)
+                if (asset.PurchasePriceUSD.HasValue && asset.PurchasePriceUSD.Value > 0 && asset.CurrentValue.HasValue)
+                {
+                    decimal dep = 1m - (asset.CurrentValue.Value / asset.PurchasePriceUSD.Value);
+                    if (dep > 0)
+                    {
+                        decimal depDeduction = Math.Min(dep * 20m, 20m);
+                        healthIndex -= depDeduction;
+                    }
+                }
+
+                // Factor 4: Alertas críticas activas vinculadas a sus contratos (Max -30 pts)
+                var assetContractIds = asset.Contracts.Select(c => c.ContractId).ToList();
+                var unresolvedAlerts = allAlerts.Count(a => assetContractIds.Contains(a.ContractId) && !a.IsRead);
+                decimal alertsDeduction = Math.Min(unresolvedAlerts * 10m, 30m);
+                healthIndex -= alertsDeduction;
+
+                // Bounding
+                healthIndex = Math.Clamp(healthIndex, 0m, 100m);
+                healthIndex = Math.Round(healthIndex, 1);
+
+                decimal wearPercentage = 100m - healthIndex;
+
+                // Recomendación basada en desgaste y categoría
+                string recommendation = "Mantenimiento preventivo no requerido. Activo en óptimo estado.";
+                if (healthIndex <= 40m)
+                {
+                    recommendation = asset.Category switch
+                    {
+                        "mineria" => "CRÍTICO: Requiere inspección urgente de sistemas hidráulicos, filtros y motor principal de inmediato.",
+                        "agroindustrial" => "CRÍTICO: Requiere overhaul de transmisión, cambio de aceites y calibración de partes mecánicas.",
+                        _ => "CRÍTICO: Se sugiere retirar del servicio activo de inmediato y realizar mantenimiento correctivo mayor."
+                    };
+                }
+                else if (healthIndex <= 75m)
+                {
+                    recommendation = asset.Category switch
+                    {
+                        "mineria" => "MODERADO: Agendar cambio preventivo de aceites y lubricación en los próximos 15 días.",
+                        "agroindustrial" => "MODERADO: Programar afinamiento menor de motor y revisión de presión en neumáticos/orugas.",
+                        _ => "MODERADO: Programar servicio preventivo estándar a la brevedad."
+                    };
+                }
+
+                result.Add(new AssetHealthDto
+                {
+                    AssetId = asset.AssetId,
+                    AssetName = asset.Name,
+                    AssetCode = asset.Code,
+                    Category = asset.Category ?? "",
+                    HealthIndex = healthIndex,
+                    WearPercentage = wearPercentage,
+                    ContractsCount = contractsCount,
+                    Status = asset.Status,
+                    Recommendation = recommendation
+                });
+            }
+
+            return result.OrderBy(r => r.HealthIndex).ToList();
+        }
+
+        // ═══════════════════════════════════════════════════════════
+        // 6. SMART MATCHMAKER & CROSS-SELLING
+        // ═══════════════════════════════════════════════════════════
+        public async Task<List<MatchmakerRecommendationDto>> GetMatchmakerRecommendations()
+        {
+            var clients = await _context.Clients
+                .Include(c => c.Contracts)
+                .Where(c => c.IsActive)
+                .ToListAsync();
+
+            var availableAssets = await _context.Assets
+                .Where(a => a.Status == "disponible")
+                .ToListAsync();
+
+            var allContracts = await _context.Contracts
+                .Include(c => c.Client)
+                .Include(c => c.Asset)
+                .ToListAsync();
+
+            var recommendations = new List<MatchmakerRecommendationDto>();
+
+            // Calcular popularidad de categorías por sector
+            var sectorCategoryPopularity = allContracts
+                .Where(c => c.Client != null && c.Asset != null)
+                .GroupBy(c => new { c.Client.Sector, c.Asset.Category })
+                .Select(g => new
+                {
+                    Sector = g.Key.Sector ?? "",
+                    Category = g.Key.Category ?? "",
+                    Count = g.Count()
+                })
+                .ToList();
+
+            foreach (var client in clients)
+            {
+                // Excluir clientes problemáticos del matchmaker para mitigar riesgo comercial
+                if (client.RiskScore > 75) continue;
+
+                var clientLeasedCategories = client.Contracts
+                    .Where(c => c.AssetId.HasValue && c.Asset != null)
+                    .Select(c => c.Asset.Category)
+                    .Distinct()
+                    .ToList();
+
+                foreach (var asset in availableAssets)
+                {
+                    decimal affinityScore = 50m; // Base
+
+                    // 1. Coincidencia de categoría preferida del sector (+30%)
+                    var popularity = sectorCategoryPopularity.FirstOrDefault(p => p.Sector == client.Sector && p.Category == asset.Category);
+                    if (popularity != null && popularity.Count > 0)
+                    {
+                        affinityScore += 30m;
+                    }
+
+                    // 2. Coincidencia de historial individual del cliente (+20%)
+                    if (clientLeasedCategories.Contains(asset.Category))
+                    {
+                        affinityScore += 20m;
+                    }
+
+                    // 3. Ajuste según perfil de riesgo (Max -15%)
+                    if (client.RiskScore.HasValue)
+                    {
+                        decimal riskDeduction = (client.RiskScore.Value / 100m) * 15m;
+                        affinityScore -= riskDeduction;
+                    }
+
+                    affinityScore = Math.Clamp(affinityScore, 0m, 100m);
+                    affinityScore = Math.Round(affinityScore, 1);
+
+                    // Solo recomendar si la afinidad supera el 65%
+                    if (affinityScore >= 65m)
+                    {
+                        // Calcular tarifa sugerida usando motor de precios
+                        var pricingRec = await RecommendPrice(new PricingRequestDto
+                        {
+                            AssetId = asset.AssetId,
+                            ClientId = client.ClientId,
+                            DurationMonths = 12 // Asumir contrato anual estándar para recomendación
+                        });
+
+                        string confidenceLevel = "Baja";
+                        if (client.RiskScore.HasValue)
+                        {
+                            if (client.RiskScore.Value <= 35m)
+                            {
+                                confidenceLevel = affinityScore >= 80m ? "Alta" : "Media";
+                            }
+                            else if (client.RiskScore.Value <= 50m)
+                            {
+                                confidenceLevel = "Media";
+                            }
+                        }
+                        else
+                        {
+                            confidenceLevel = affinityScore >= 80m ? "Alta" : "Media";
+                        }
+
+                        string riskStatusText = client.RiskScore.HasValue
+                            ? (client.RiskScore.Value <= 35m ? "historial financiero estable" : "historial financiero moderado")
+                            : "historial financiero no registrado";
+
+                        string reasoning = $"El {affinityScore:F0}% de afinidad se debe a que ";
+                        if (clientLeasedCategories.Contains(asset.Category))
+                        {
+                            reasoning += $"el cliente ya arrienda activos de categoría '{asset.Category}' ";
+                        }
+                        else
+                        {
+                            reasoning += $"la categoría '{asset.Category}' es la más solicitada en el sector '{client.Sector}' ";
+                        }
+                        reasoning += $"y posee un {riskStatusText} (Score de Riesgo: {client.RiskScore ?? 0:F0}/100).";
+
+                        recommendations.Add(new MatchmakerRecommendationDto
+                        {
+                            ClientId = client.ClientId,
+                            ClientName = client.BusinessName,
+                            Sector = client.Sector ?? "",
+                            AssetId = asset.AssetId,
+                            AssetName = asset.Name,
+                            AssetCategory = asset.Category ?? "",
+                            AffinityScore = affinityScore,
+                            SuggestedMonthlyRate = Math.Round(pricingRec.SuggestedPrice / 12m, 2), // tarifa mensual
+                            ConfidenceLevel = confidenceLevel,
+                            Reasoning = reasoning
+                        });
+                    }
+                }
+            }
+
+            return recommendations.OrderByDescending(r => r.AffinityScore).ToList();
+        }
+
+        // ═══════════════════════════════════════════════════════════
+        // 7. INTERACTIVE "WHAT-IF" CREDIT SIMULATOR
+        // ═══════════════════════════════════════════════════════════
+        public async Task<SimulatedRiskDto> SimulateRiskScore(RiskSimulationRequestDto request)
+        {
+            // Algoritmo de simulación predictiva "What-If"
+            // Factor 1: Historial de Pago Simulado (40%)
+            decimal paymentHistoryRaw = 1m - (request.OnTimePaymentRate / 100m);
+
+            // Factor 2: Plazo y apalancamiento (30%)
+            // A mayor plazo y menor cuota inicial, mayor riesgo acumulativo
+            decimal financementRatio = 1m - (request.DownPayment / (request.TotalAmount > 0 ? request.TotalAmount : 1m));
+            decimal termFactor = Math.Min(request.InstallmentsCount / 36m, 1m);
+            decimal leverageRaw = (financementRatio * 0.6m) + (termFactor * 0.4m);
+
+            // Factor 3: Riesgo del Sector Económico (15%)
+            decimal sectorRiskRaw = request.Sector?.ToLowerInvariant() switch
+            {
+                "mineria" => 0.45m,       // Alta rentabilidad, volatilidad media
+                "construccion" => 0.80m,  // Construcción es sector de alto riesgo/mora
+                "agroindustrial" => 0.30m, // Sector muy estable y seguro en el leasing peruano
+                "transporte" => 0.60m,    // Desgaste alto
+                "manufactura" => 0.35m,   // Estable
+                _ => 0.50m
+            };
+
+            // Factor 4: Desviación del monto contra la mediana nacional (15%)
+            // Mediana estimada nacional de financiamiento: S/ 80,000
+            decimal medianNational = 80000m;
+            decimal deviationRaw = Math.Min(Math.Abs(request.TotalAmount - medianNational) / medianNational, 1m);
+
+            // Cálculo del Score Ponderado
+            decimal score = Math.Round(
+                (paymentHistoryRaw * 40m) +
+                (leverageRaw * 30m) +
+                (sectorRiskRaw * 15m) +
+                (deviationRaw * 15m), 1);
+
+            score = Math.Clamp(score, 0m, 100m);
+
+            var (category, color) = score switch
+            {
+                <= 25m => ("Bajo", "green"),
+                <= 50m => ("Medio", "yellow"),
+                <= 75m => ("Alto", "orange"),
+                _ => ("Crítico", "red")
+            };
+
+            // Generar recomendaciones dinámicas de la IA para mitigación de riesgo
+            var recs = new List<string>();
+            if (score > 75m)
+            {
+                recs.Add("RECHAZO RECOMENDADO: El perfil simulado expone un riesgo crítico.");
+                recs.Add($"Sugerencia 1: Incrementar la cuota inicial al menos al {Math.Max(30m, request.DownPayment / request.TotalAmount * 100 + 15):F0}% del monto total.");
+                recs.Add($"Sugerencia 2: Disminuir el plazo del contrato de {request.InstallmentsCount} a {Math.Max(3, request.InstallmentsCount / 2)} meses para mitigar la exposición temporal.");
+            }
+            else if (score > 50m)
+            {
+                recs.Add("APROBACIÓN CONDICIONADA: El riesgo simulado es Alto.");
+                recs.Add("Sugerencia 1: Solicitar una fianza solidaria o carta fianza bancaria como garantía.");
+                recs.Add("Sugerencia 2: Acortar el plazo a un máximo de 12 meses.");
+                recs.Add("Sugerencia 3: Incrementar la tasa de interés en +2.5% sobre la tasa base.");
+            }
+            else if (score > 25m)
+            {
+                recs.Add("APROBACIÓN RECOMENDADA CON MONITOREO: Riesgo Medio.");
+                recs.Add("Sugerencia 1: Ofrecer plazos estándar (12 a 24 meses) sin penalidad adicional.");
+                recs.Add("Sugerencia 2: Solicitar un abono inicial mínimo del 10%.");
+            }
+            else
+            {
+                recs.Add("APROBACIÓN INMEDIATA: Riesgo Bajo / Excelente perfil.");
+                recs.Add("Sugerencia 1: Ofrecer tasa de interés preferencial (-1.5%).");
+                recs.Add("Sugerencia 2: Habilitar opción de compra residual flexible al finalizar el contrato.");
+            }
+
+            return new SimulatedRiskDto
+            {
+                Score = score,
+                Category = category,
+                CategoryColor = color,
+                Recommendations = recs
+            };
+        }
+
+        // ═══════════════════════════════════════════════════════════
         // HELPERS
         // ═══════════════════════════════════════════════════════════
         private async Task<decimal> GetSectorMedianContractValue(string sector)
