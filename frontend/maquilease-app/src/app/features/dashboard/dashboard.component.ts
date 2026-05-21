@@ -10,14 +10,14 @@ import { SegmentationSummary } from '../../core/services/intelligence.service';
   standalone: true,
   imports: [CommonModule, ChartModule],
   templateUrl: './dashboard.component.html',
-  styleUrl: './dashboard.component.scss'
+  styleUrls: ['./dashboard.component.scss']
 })
 export class DashboardComponent implements OnInit {
   dashboardService = inject(DashboardService);
   themeService = inject(ThemeService);
 
   kpis: DashboardKpi | null = null;
-  
+
   lineChartData: any;
   lineChartOptions: any;
 
