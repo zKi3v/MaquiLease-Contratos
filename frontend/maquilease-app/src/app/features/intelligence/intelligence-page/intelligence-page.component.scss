@@ -56,24 +56,68 @@ html[data-theme="dark"] .p-card {
 .action-bar {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 1.5rem !important;
   flex-wrap: wrap;
   margin-bottom: 1.5rem;
+
+  p-dropdown,
+  p-inputNumber,
+  p-button {
+    display: inline-block;
+  }
 }
 
 .pricing-bar {
+  display: flex;
+  align-items: center;
   flex-wrap: wrap;
+  gap: 1.5rem !important;
+
+  p-dropdown,
+  p-inputNumber,
+  p-button {
+    display: inline-block;
+  }
 
   ::ng-deep {
     .p-inputnumber {
       width: 100%;
+      display: inline-flex !important;
+      align-items: center;
+      gap: 1.5rem !important; /* Separación amplia hacia la derecha para los botones */
 
       @media (min-width: 768px) {
-        width: 12rem !important;
+        width: 15rem !important; /* Aumentado para dar suficiente espacio al input y al gap */
       }
 
       .p-inputnumber-input {
         width: 100%;
+        border-radius: 9px !important;
+        border: 1.5px solid var(--surface-d) !important; /* Asegurar borde completo en todos los lados */
+
+        html[data-theme="dark"] & {
+          border: 1.5px solid var(--surface-c) !important; /* Asegurar borde completo en todos los lados en modo oscuro */
+        }
+      }
+
+      .p-inputnumber-button-group {
+        position: static !important;
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 3px !important;
+        justify-content: center !important;
+      }
+
+      .p-inputnumber-button {
+        position: static !important;
+        border-radius: 6px !important;
+        border-top-left-radius: 6px !important;
+        border-top-right-radius: 6px !important;
+        border-bottom-left-radius: 6px !important;
+        border-bottom-right-radius: 6px !important;
+        border: none !important;
+        height: 18px !important;
+        width: 2.2rem !important;
       }
     }
   }

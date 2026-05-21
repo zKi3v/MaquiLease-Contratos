@@ -145,8 +145,14 @@ h1, h2, h3, h4, h5, h6 {
   border-left: none !important;
   background-color: transparent !important;
 }
-.p-dropdown .p-dropdown-label {
+.p-dropdown .p-dropdown-label,
+.p-dropdown .p-dropdown-label.p-inputtext,
+.p-dropdown .p-inputtext {
+  border: none !important;
+  box-shadow: none !important;
+  background: transparent !important;
   background-color: transparent !important;
+  padding-right: 0 !important;
 }
 
 html[data-theme="dark"] .p-dropdown {
@@ -158,7 +164,14 @@ html[data-theme="dark"] .p-dropdown .p-dropdown-trigger {
   background-color: transparent !important;
 }
 html[data-theme="dark"] .p-dropdown .p-dropdown-label,
-html[data-theme="dark"] .p-dropdown-panel,
+html[data-theme="dark"] .p-dropdown .p-dropdown-label.p-inputtext,
+html[data-theme="dark"] .p-dropdown .p-inputtext {
+  background-color: transparent !important;
+  background: transparent !important;
+  color: var(--text-color) !important;
+  border: none !important;
+  box-shadow: none !important;
+}
 html[data-theme="dark"] .p-dropdown-item,
 html[data-theme="dark"] .p-inputtext,
 html[data-theme="dark"] .p-calendar .p-inputtext {
@@ -166,7 +179,70 @@ html[data-theme="dark"] .p-calendar .p-inputtext {
   color: var(--text-color) !important;
 }
 html[data-theme="dark"] .p-dropdown-panel {
-  border-color: var(--surface-c) !important;
+  border-color: var(--glass-border) !important;
+  background-color: var(--surface-b) !important;
+  box-shadow: var(--glass-shadow) !important;
+  
+  .p-dropdown-header {
+    background-color: var(--surface-b) !important;
+    color: var(--text-color) !important;
+    border-bottom: 1px solid var(--glass-border) !important;
+    padding: 0.5rem 0.75rem !important;
+    
+    .p-dropdown-filter-container {
+      background-color: transparent !important;
+      
+      .p-dropdown-filter {
+        background-color: var(--surface-a) !important;
+        color: var(--text-color) !important;
+        border: 1.5px solid var(--glass-border) !important;
+        border-radius: 6px !important;
+        padding: 0.4rem 0.5rem !important;
+        padding-right: 2rem !important;
+      }
+      
+      .p-dropdown-filter-icon {
+        color: var(--text-color-secondary) !important;
+        right: 0.75rem !important;
+      }
+    }
+    
+    .p-dropdown-close {
+      color: var(--text-color-secondary) !important;
+      &:hover {
+        color: var(--text-color) !important;
+        background-color: var(--surface-c) !important;
+      }
+    }
+  }
+  
+  .p-dropdown-items-wrapper {
+    background-color: var(--surface-b) !important;
+  }
+  
+  .p-dropdown-items {
+    padding: 0.25rem 0 !important;
+  }
+  
+  .p-dropdown-item {
+    background-color: var(--surface-b) !important;
+    color: var(--text-color) !important;
+    padding: 0.5rem 0.75rem !important;
+    margin: 0 0.25rem !important;
+    border-radius: 6px !important;
+    transition: background-color 0.15s ease, color 0.15s ease !important;
+    
+    &:hover, &.p-highlight {
+      background-color: var(--nav-active-bg) !important;
+      color: var(--nav-active-color) !important;
+    }
+  }
+  
+  .p-dropdown-empty-message {
+    background-color: var(--surface-b) !important;
+    color: var(--text-color-secondary) !important;
+    padding: 0.75rem !important;
+  }
 }
 
 html[data-theme="dark"] .p-tabview,
@@ -182,6 +258,17 @@ html[data-theme="dark"] .p-tabview .p-tabview-nav li .p-tabview-nav-link {
   color: var(--text-color-secondary) !important;
 }
 html[data-theme="dark"] .p-tabview .p-tabview-nav li.p-highlight .p-tabview-nav-link {
+  background-color: var(--surface-c) !important;
+  color: var(--text-color) !important;
+}
+html[data-theme="dark"] .p-tabview .p-tabview-nav-prev,
+html[data-theme="dark"] .p-tabview .p-tabview-nav-next {
+  background-color: var(--surface-b) !important;
+  color: var(--text-color) !important;
+  border-color: var(--surface-c) !important;
+}
+html[data-theme="dark"] .p-tabview .p-tabview-nav-prev:hover,
+html[data-theme="dark"] .p-tabview .p-tabview-nav-next:hover {
   background-color: var(--surface-c) !important;
   color: var(--text-color) !important;
 }
