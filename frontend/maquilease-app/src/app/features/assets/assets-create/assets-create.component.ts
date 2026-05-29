@@ -39,10 +39,11 @@ import { CatalogService } from '../../../core/services/catalog.service';
             (completeMethod)="filterCategories($event)" 
             [completeOnFocus]="true"
             [minLength]="0"
-            (click)="acCat.handleDropdownClick($event)" 
-            #acCat 
             placeholder="Seleccione o escriba una Categoría"
-            [dropdown]="false">
+            [dropdown]="false"
+            styleClass="w-full"
+            inputStyleClass="w-full"
+            appendTo="body">
           </p-autoComplete>
         </div>
         <div class="field col-12 md:col-6">
@@ -53,10 +54,11 @@ import { CatalogService } from '../../../core/services/catalog.service';
             (completeMethod)="filterBrands($event)" 
             [completeOnFocus]="true"
             [minLength]="0"
-            (click)="acBrand.handleDropdownClick($event)" 
-            #acBrand 
             placeholder="Seleccione o escriba una Marca"
-            [dropdown]="false">
+            [dropdown]="false"
+            styleClass="w-full"
+            inputStyleClass="w-full"
+            appendTo="body">
           </p-autoComplete>
         </div>
         <div class="field col-12 md:col-6">
@@ -65,7 +67,7 @@ import { CatalogService } from '../../../core/services/catalog.service';
         </div>
         <div class="field col-12 md:col-6">
           <label for="status">Estado *</label>
-          <p-dropdown [options]="statusOptions" [(ngModel)]="assetForm.status"></p-dropdown>
+          <p-dropdown [options]="statusOptions" [(ngModel)]="assetForm.status" appendTo="body"></p-dropdown>
         </div>
         <div class="field col-12 md:col-4">
           <label for="purchasePriceCNY">Costo Compra (CNY)</label>

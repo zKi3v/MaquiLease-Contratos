@@ -34,7 +34,7 @@ import { CatalogService } from '../../../core/services/catalog.service';
         </div>
         <div class="field col-12 md:col-6">
           <label for="serviceType">Tipo *</label>
-          <p-dropdown [options]="typeOptions" [(ngModel)]="serviceForm.serviceType"></p-dropdown>
+          <p-dropdown [options]="typeOptions" [(ngModel)]="serviceForm.serviceType" appendTo="body"></p-dropdown>
         </div>
         <div class="field col-12 md:col-6">
           <label for="category">Categoría</label>
@@ -44,10 +44,11 @@ import { CatalogService } from '../../../core/services/catalog.service';
             (completeMethod)="filterCategories($event)" 
             [completeOnFocus]="true"
             [minLength]="0"
-            (click)="ac.handleDropdownClick($event)" 
-            #ac 
             placeholder="Seleccione o escriba una Categoría"
-            [dropdown]="false">
+            [dropdown]="false"
+            styleClass="w-full"
+            inputStyleClass="w-full"
+            appendTo="body">
           </p-autoComplete>
         </div>
         <div class="field col-12 md:col-4">
@@ -56,11 +57,11 @@ import { CatalogService } from '../../../core/services/catalog.service';
         </div>
         <div class="field col-12 md:col-4">
           <label for="currency">Moneda *</label>
-          <p-dropdown [options]="currencyOptions" [(ngModel)]="serviceForm.currency"></p-dropdown>
+          <p-dropdown [options]="currencyOptions" [(ngModel)]="serviceForm.currency" appendTo="body"></p-dropdown>
         </div>
         <div class="field col-12 md:col-4">
           <label for="priceUnit">Unidad de Cobro *</label>
-          <p-dropdown [options]="unitOptions" [(ngModel)]="serviceForm.priceUnit"></p-dropdown>
+          <p-dropdown [options]="unitOptions" [(ngModel)]="serviceForm.priceUnit" appendTo="body"></p-dropdown>
         </div>
         <div class="field col-12 md:col-8">
           <label for="description">Descripción</label>
