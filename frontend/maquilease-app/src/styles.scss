@@ -526,3 +526,13 @@ html[data-theme="dark"] .notif-overlay .notif-icon.riesgo_alto {
   color: #a5b4fc !important;
 }
 
+/* FORCE OVERLAYS ON TOP OF EVERYTHING */
+.p-dropdown-panel, 
+.p-autocomplete-panel, 
+.p-overlaypanel, 
+.p-datepicker, 
+.p-menu, 
+.p-submenu {
+  z-index: 999999 !important;
+}
+
