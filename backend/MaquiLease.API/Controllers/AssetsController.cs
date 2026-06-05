@@ -120,5 +120,30 @@ namespace MaquiLease.API.Controllers
             await _context.SaveChangesAsync();
             return NoContent();
         }
+
+        [HttpPost("{id}/maintenance")]
+        public async Task<IActionResult> ScheduleMaintenance(int id, ScheduleMaintenanceDto dto)
+        {
+            var asset = await _context.Assets.FindAsync(id);
+            if (asset == null) return NotFound("Activo no encontrado.");
+
+            asset.Status = "mantenimiento";
+
+            var service = await _context.Services.FindAsync(dto.ServiceId);
+            string serviceName = service?.Name ?? "Servicio Técnico Desconocido";
+            decimal serviceCost = service?.BasePrice ?? 0;
+
+            // Formatear nota estructurada
+            string dateStr = DateTime.Now.ToString("yyyy-MM-dd");
+            string maintenanceNote = $"[{dateStr}] Mantenimiento programado: {serviceName}. Detalle: {dto.Reason}. Costo Estimado: S/ {serviceCost:N2}.\n";
+            
+            asset.Notes = string.IsNullOrEmpty(asset.Notes) 
+                ? maintenanceNote 
+                : maintenanceNote + asset.Notes;
+
+            await _context.SaveChangesAsync();
+
+            return Ok(new { message = "Mantenimiento programado y estado actualizado con éxito." });
+        }
     }
 }

@@ -1,6 +1,7 @@
 using MaquiLease.API.Data;
 using MaquiLease.API.Models.DTOs;
 using MaquiLease.API.Models.Entities;
+using MaquiLease.API.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -165,6 +166,39 @@ namespace MaquiLease.API.Controllers
             }
 
             return CreatedAtAction(nameof(GetContract), new { id = contract.ContractId }, new { contract.ContractId });
+        }
+
+        [HttpGet("{id}/pdf")]
+        public async Task<IActionResult> DownloadContractPdf(int id, [FromServices] PdfService pdfService)
+        {
+            var contract = await _context.Contracts
+                .Include(c => c.Client)
+                .Include(c => c.Asset)
+                .Include(c => c.Service)
+                .Include(c => c.Installments)
+                .FirstOrDefaultAsync(c => c.ContractId == id);
+
+            if (contract == null) return NotFound("Contrato no encontrado.");
+
+            var clientName = contract.Client.BusinessName;
+            var clientRuc = contract.Client.RUC;
+            var clientAddress = contract.Client.Address ?? "No registrada";
+            var assetName = contract.Asset?.Name ?? string.Empty;
+            var serviceName = contract.Service?.Name ?? string.Empty;
+
+            string leasingTerms = "El arrendatario se compromete a mantener el activo en óptimas condiciones de operación y a reportar cualquier falla técnica de inmediato. Los pagos se realizarán mensualmente según las fechas del cronograma adjunto.";
+
+            var pdfBytes = pdfService.GenerateContractPdf(
+                contract,
+                clientName,
+                clientRuc,
+                clientAddress,
+                assetName,
+                serviceName,
+                leasingTerms
+            );
+
+            return File(pdfBytes, "application/pdf", $"Contrato_{contract.ContractNumber}.pdf");
         }
     }
 }

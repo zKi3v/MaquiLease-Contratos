@@ -104,5 +104,15 @@ namespace MaquiLease.API.Controllers
             var result = await _intelligence.SimulateRiskScore(request);
             return Ok(result);
         }
+
+        /// <summary>
+        /// Obtiene el historial temporal de risk scores para un cliente.
+        /// </summary>
+        [HttpGet("client/{clientId}/risk-history")]
+        public async Task<ActionResult<List<RiskHistoryDto>>> GetRiskHistory(int clientId)
+        {
+            var result = await _intelligence.GetRiskHistory(clientId);
+            return Ok(result);
+        }
     }
 }

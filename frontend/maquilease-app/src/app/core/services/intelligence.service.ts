@@ -154,4 +154,8 @@ export class IntelligenceService {
   simulateRisk(request: RiskSimulationRequest): Observable<SimulatedRisk> {
     return this.api.post<SimulatedRisk>('intelligence/simulate', request);
   }
+
+  getRiskHistory(clientId: number): Observable<any[]> {
+    return this.api.get<any[]>(`intelligence/client/${clientId}/risk-history`);
+  }
 }

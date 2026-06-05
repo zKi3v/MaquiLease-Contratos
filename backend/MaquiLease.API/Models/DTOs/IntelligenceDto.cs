@@ -131,4 +131,10 @@ namespace MaquiLease.API.Models.DTOs
         public string CategoryColor { get; set; } = string.Empty;
         public List<string> Recommendations { get; set; } = new();
     }
+
+    public class RiskHistoryDto
+    {
+        public decimal Score { get; set; }
+        public DateTime GeneratedAt { get; set; }
+    }
 }

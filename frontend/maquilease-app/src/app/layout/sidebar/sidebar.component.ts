@@ -2,6 +2,7 @@ import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { SidebarService } from '../../core/services/sidebar.service';
+import { AuthService } from '../../core/services/auth.service';
 
 @Component({
   selector: 'app-sidebar',
@@ -61,12 +62,21 @@ import { SidebarService } from '../../core/services/sidebar.service';
         <span class="nav-section-label mt-spacer">Inteligencia</span>
         <a routerLink="/intelligence" routerLinkActive="active" class="nav-item" (click)="closeMobile()">
           <div class="nav-icon"><i class="pi pi-lightbulb"></i></div>
-          <span>Sistema IA</span>
+          <span>Sistema Inteligente</span>
         </a>
         <a routerLink="/alerts" routerLinkActive="active" class="nav-item" (click)="closeMobile()">
           <div class="nav-icon"><i class="pi pi-bell"></i></div>
           <span>Alertas</span>
         </a>
+
+        <!-- Admin Only Navigation -->
+        <ng-container *ngIf="authService.isAdmin()">
+          <span class="nav-section-label mt-spacer">Administración</span>
+          <a routerLink="/users" routerLinkActive="active" class="nav-item" (click)="closeMobile()">
+            <div class="nav-icon"><i class="pi pi-users"></i></div>
+            <span>Usuarios y Roles</span>
+          </a>
+        </ng-container>
       </nav>
 
       <!-- Footer -->
@@ -184,6 +194,7 @@ import { SidebarService } from '../../core/services/sidebar.service';
 })
 export class SidebarComponent {
   sidebarService = inject(SidebarService);
+  authService = inject(AuthService);
   private router = inject(Router);
 
   closeMobile() {
@@ -194,6 +205,6 @@ export class SidebarComponent {
 
   logout() {
     this.sidebarService.close();
-    this.router.navigate(['/login']);
+    this.authService.logout();
   }
 }

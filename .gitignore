@@ -27,7 +27,7 @@ maquilease_db/
 *.mdf
 *.ldf
 .env
-
+maquilease-firebase-adminsdk-fbsvc-c134770f08.json
 # OS Files
 .DS_Store
 Thumbs.db
@@ -35,3 +35,4 @@ Thumbs.db
 # User specific
 mds/
 AGENTS.md
+

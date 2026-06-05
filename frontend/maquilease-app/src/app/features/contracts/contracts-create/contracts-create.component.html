@@ -10,7 +10,36 @@
       <div class="grid">
         <div class="field col-12 md:col-6">
           <label>Cliente Asociado *</label>
-          <p-dropdown [options]="clients" [(ngModel)]="contractForm.clientId" placeholder="Seleccione un Cliente" [filter]="true" appendTo="body"></p-dropdown>
+          <p-dropdown [options]="clients" [(ngModel)]="contractForm.clientId" placeholder="Seleccione un Cliente" [filter]="true" appendTo="body" (onChange)="onClientChange($event.value)"></p-dropdown>
+          
+          <!-- Recomendación de riesgo de morosidad -->
+          <div *ngIf="clientRiskRecommendation" class="mt-3 p-3 border-round border-left-3 transition-all duration-300"
+               [ngClass]="{
+                 'bg-blue-50 border-blue-500 text-blue-900': clientRiskRecommendation.category === 'Bajo' || clientRiskRecommendation.category === 'Medio',
+                 'bg-red-50 border-red-500 text-red-900': clientRiskRecommendation.category === 'Alto' || clientRiskRecommendation.category === 'Crítico'
+               }">
+            <div class="flex align-items-center justify-content-between mb-2">
+              <span class="font-bold flex align-items-center gap-2">
+                <i class="pi" [ngClass]="{
+                  'pi-info-circle text-blue-600': clientRiskRecommendation.category === 'Bajo' || clientRiskRecommendation.category === 'Medio',
+                  'pi-exclamation-triangle text-red-600': clientRiskRecommendation.category === 'Alto' || clientRiskRecommendation.category === 'Crítico'
+                }"></i>
+                <span *ngIf="clientRiskRecommendation.category === 'Bajo' || clientRiskRecommendation.category === 'Medio'">Recomendación:</span>
+                <span *ngIf="clientRiskRecommendation.category === 'Alto' || clientRiskRecommendation.category === 'Crítico'">Alerta:</span>
+              </span>
+              <p-tag [value]="clientRiskRecommendation.category"
+                     [severity]="clientRiskRecommendation.category === 'Bajo' ? 'success' : (clientRiskRecommendation.category === 'Medio' ? 'warning' : 'danger')">
+              </p-tag>
+            </div>
+            <p class="m-0 text-sm">
+              <span *ngIf="clientRiskRecommendation.category === 'Bajo' || clientRiskRecommendation.category === 'Medio'">
+                Perfil financiero estable (Score: {{clientRiskRecommendation.score}}/100). Se sugieren plazos estándar e interés mínimo.
+              </span>
+              <span *ngIf="clientRiskRecommendation.category === 'Alto' || clientRiskRecommendation.category === 'Crítico'">
+                Cliente con perfil de riesgo elevado (Score: {{clientRiskRecommendation.score}}/100). Se aconseja solicitar garantía adicional y cuota inicial de mínimo 20%.
+              </span>
+            </p>
+          </div>
         </div>
         <div class="field col-12 md:col-6">
           <label>Tipo de Contrato *</label>
@@ -18,11 +47,11 @@
         </div>
         <div class="field col-12 md:col-6" *ngIf="contractForm.contractType !== 'servicios'">
           <label>Activo/Maquinaria *</label>
-          <p-dropdown [options]="assets" [(ngModel)]="contractForm.assetId" placeholder="Seleccione Activo" [filter]="true" appendTo="body"></p-dropdown>
+          <p-dropdown [options]="assets" [(ngModel)]="contractForm.assetId" placeholder="Seleccione Activo" [filter]="true" appendTo="body" (onChange)="fetchPricingRecommendation()"></p-dropdown>
         </div>
         <div class="field col-12 md:col-6" *ngIf="contractForm.contractType !== 'arrendamiento'">
           <label>Servicio Técnico/Profesional *</label>
-          <p-dropdown [options]="services" [(ngModel)]="contractForm.serviceId" placeholder="Seleccione Servicio" [filter]="true" appendTo="body"></p-dropdown>
+          <p-dropdown [options]="services" [(ngModel)]="contractForm.serviceId" placeholder="Seleccione Servicio" [filter]="true" appendTo="body" (onChange)="fetchPricingRecommendation()"></p-dropdown>
         </div>
       </div>
       <div class="flex justify-content-between mt-4">
@@ -33,6 +62,19 @@
 
     <!-- PASO 2 -->
     <div *ngSwitchCase="1" class="col-12">
+      <!-- Recomendación de monto sugerido -->
+      <div *ngIf="pricingRecommendation" class="mb-4 p-3 bg-cyan-50 border-left-3 border-cyan-500 text-cyan-900 border-round">
+        <div class="flex align-items-center gap-2 mb-1">
+          <i class="pi pi-dollar text-cyan-600 font-bold"></i>
+          <span class="font-bold">Monto Total Recomendado:</span>
+        </div>
+        <p class="m-0 text-sm">
+          Monto total sugerido de <strong>S/. {{ pricingRecommendation.suggestedPrice | number:'1.0-2' }}</strong> para el contrato 
+          (Mínimo: S/. {{ pricingRecommendation.minPrice | number:'1.0-2' }} | Máximo: S/. {{ pricingRecommendation.maxPrice | number:'1.0-2' }}) 
+          basado en la depreciación del activo, el historial crediticio y un plazo de {{ contractForm.numberOfInstallments || 1 }} mes(es).
+        </p>
+      </div>
+
       <div class="grid">
         <div class="field col-12 md:col-6">
           <label>Monto Total *</label>

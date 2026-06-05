@@ -25,4 +25,8 @@ export class AssetService {
   updateAsset(id: number, asset: CreateAssetDto): Observable<void> {
     return this.api.put<void>(`${this.endpoint}/${id}`, asset);
   }
+
+  scheduleMaintenance(assetId: number, serviceId: number, reason: string): Observable<any> {
+    return this.api.post<any>(`${this.endpoint}/${assetId}/maintenance`, { serviceId, reason });
+  }
 }

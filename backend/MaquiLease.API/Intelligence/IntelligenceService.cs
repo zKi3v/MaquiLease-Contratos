@@ -800,5 +800,18 @@ namespace MaquiLease.API.Intelligence
                 ? (sectorValues[mid - 1] + sectorValues[mid]) / 2m
                 : sectorValues[mid];
         }
+
+        public async Task<List<RiskHistoryDto>> GetRiskHistory(int clientId)
+        {
+            return await _context.PredictionLogs
+                .Where(p => p.ClientId == clientId && p.PredictionType == "riesgo_mora")
+                .OrderBy(p => p.GeneratedAt)
+                .Select(p => new RiskHistoryDto
+                {
+                    Score = p.Score,
+                    GeneratedAt = p.GeneratedAt
+                })
+                .ToListAsync();
+        }
     }
 }
