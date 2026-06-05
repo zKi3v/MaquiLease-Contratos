@@ -9,6 +9,7 @@ import { InputNumberModule } from 'primeng/inputnumber';
 import { CalendarModule } from 'primeng/calendar';
 import { InputTextareaModule } from 'primeng/inputtextarea';
 import { TableModule } from 'primeng/table';
+import { TagModule } from 'primeng/tag';
 import SignaturePad from 'signature_pad';
 
 import { ContractService } from '../services/contract.service';
@@ -16,13 +17,14 @@ import { CreateContractDto } from '../models/contract.interface';
 import { ClientService } from '../../clients/services/client.service';
 import { AssetService } from '../../assets/services/asset.service';
 import { ServiceCatalogService } from '../../services-catalog/services/service-catalog.service';
+import { IntelligenceService } from '../../../core/services/intelligence.service';
 
 @Component({
   selector: 'app-contracts-create',
   standalone: true,
   imports: [
     CommonModule, FormsModule, ButtonModule, StepsModule,
-    DropdownModule, InputNumberModule, CalendarModule, InputTextareaModule, TableModule
+    DropdownModule, InputNumberModule, CalendarModule, InputTextareaModule, TableModule, TagModule
   ],
   templateUrl: './contracts-create.component.html',
   styleUrls: ['./contracts-create.component.scss']
@@ -32,6 +34,7 @@ export class ContractsCreateComponent implements OnInit, AfterViewInit {
   private clientService = inject(ClientService);
   private assetService = inject(AssetService);
   private svcCatalog = inject(ServiceCatalogService);
+  private intelligenceService = inject(IntelligenceService);
   private router = inject(Router);
 
   items: any[] | undefined;
@@ -40,6 +43,11 @@ export class ContractsCreateComponent implements OnInit, AfterViewInit {
   clients: any[] = [];
   assets: any[] = [];
   services: any[] = [];
+
+  // Recomendaciones en tiempo real
+  clientRiskRecommendation: any = null;
+  pricingRecommendation: any = null;
+  recommendationLoading: boolean = false;
 
   contractTypes = [
     { label: 'Arrendamiento Puro', value: 'arrendamiento' },
@@ -101,6 +109,55 @@ export class ContractsCreateComponent implements OnInit, AfterViewInit {
     this.svcCatalog.getServices().subscribe(data => this.services = data.map(s => ({ label: s.name, value: s.serviceId })));
   }
 
+  onClientChange(clientId: number) {
+    if (!clientId) {
+      this.clientRiskRecommendation = null;
+      this.pricingRecommendation = null;
+      return;
+    }
+
+    this.recommendationLoading = true;
+    this.intelligenceService.getRiskScore(clientId).subscribe({
+      next: (scoreData) => {
+        this.clientRiskRecommendation = scoreData;
+        this.recommendationLoading = false;
+        
+        // Recalcular cotización sugerida si ya hay un activo o servicio seleccionado
+        this.fetchPricingRecommendation();
+      },
+      error: () => {
+        this.recommendationLoading = false;
+      }
+    });
+  }
+
+  fetchPricingRecommendation() {
+    const assetId = this.contractForm.assetId;
+    const serviceId = this.contractForm.serviceId;
+    const clientId = this.contractForm.clientId;
+
+    if (!clientId || (!assetId && !serviceId)) {
+      this.pricingRecommendation = null;
+      return;
+    }
+
+    const duration = this.contractForm.numberOfInstallments || 12;
+
+    this.intelligenceService.getPricingRecommendation({
+      assetId: assetId || undefined,
+      serviceId: serviceId || undefined,
+      clientId: clientId,
+      durationMonths: duration
+    }).subscribe({
+      next: (data) => {
+        this.pricingRecommendation = data;
+      },
+      error: () => {
+        this.pricingRecommendation = null;
+      }
+    });
+  }
+
   updatePreviewAndEndDate() {
     if (!this.startDate) return;
 
@@ -135,6 +192,9 @@ export class ContractsCreateComponent implements OnInit, AfterViewInit {
         });
       }
     }
+
+    // Actualizar cotización de tarifas en tiempo real
+    this.fetchPricingRecommendation();
   }
 
   next() {

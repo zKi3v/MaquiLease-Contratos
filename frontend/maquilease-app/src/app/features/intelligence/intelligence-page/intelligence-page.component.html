@@ -1,3 +1,5 @@
+<p-toast></p-toast>
+
 <div class="intelligence-page">
   <div class="page-header">
     <div>
@@ -76,16 +78,25 @@
                   </div>
                 </div>
               </div>
+          </div>
+
+          <!-- Historial de Risk Score -->
+          <div class="risk-history-card glass-card mt-4" *ngIf="hasRiskHistory">
+            <h3><i class="pi pi-chart-line text-red-500 mr-2"></i>Historial de Evaluaciones de Riesgo</h3>
+            <p class="subtitle text-sm text-500 mb-3">Evolución de los puntajes del cliente a lo largo del tiempo</p>
+            <div class="chart-container" style="height: 240px; position: relative;">
+              <p-chart type="line" [data]="riskHistoryChartData" [options]="riskHistoryChartOptions" height="240px"></p-chart>
             </div>
           </div>
-        </div>
+        </div> <!-- Closes risk-overview -->
+      </div> <!-- Closes risk-results -->
 
-        <div class="empty-state" *ngIf="!riskScore && !riskLoading">
-          <i class="pi pi-shield"></i>
-          <p>Seleccione un cliente para calcular su score de riesgo de morosidad</p>
-        </div>
+      <div class="empty-state" *ngIf="!riskScore && !riskLoading">
+        <i class="pi pi-shield"></i>
+        <p>Seleccione un cliente para calcular su score de riesgo de morosidad</p>
       </div>
-    </p-tabPanel>
+    </div>
+  </p-tabPanel>
 
     <!-- ══════════════════════════════════════════ -->
     <!-- TAB 2: PRICING RECOMMENDATION             -->
@@ -142,7 +153,7 @@
               <span class="price-label">Mínimo</span>
               <span class="price-value">S/ {{ pricingResult.minPrice | number:'1.0-0' }}</span>
             </div>
-            <div class="price-card glass-card suggested-price" pTooltip="Tarifa ideal sugerida por la IA optimizando retornos y riesgo." tooltipPosition="top">
+            <div class="price-card glass-card suggested-price" pTooltip="Tarifa ideal sugerida optimizando retornos y riesgo." tooltipPosition="top">
               <span class="price-label">Sugerido</span>
               <span class="price-value highlight">S/ {{ pricingResult.suggestedPrice | number:'1.0-0' }}</span>
               <i class="pi pi-star-fill recommended-star"></i>
@@ -275,7 +286,7 @@
       <div class="tab-content">
         <div class="asset-health-section" *ngIf="!healthLoading && assetHealths.length > 0">
           <div class="glass-card mb-4 header-tip header-tip-health">
-            <h3><i class="pi pi-info-circle text-primary"></i> Mantenimiento Predictivo IA</h3>
+            <h3><i class="pi pi-info-circle text-primary"></i> Mantenimiento Predictivo</h3>
             <p class="subtitle text-sm">Nuestro motor estima el desgaste estructural de los activos calculando antigüedad, depreciación comercial, contratos previos y alertas activas. Evita fallas en obra agendando revisiones tempranas.</p>
           </div>
           
@@ -289,7 +300,8 @@
                   <th>Salud Operacional (Health Index) <i class="pi pi-info-circle text-xs" pTooltip="Estimado según antigüedad, contratos previos, depreciación y alertas activas." tooltipPosition="top"></i></th>
                   <th>Contratos <i class="pi pi-info-circle text-xs" pTooltip="Cantidad de arriendos previos asociados a esta maquinaria." tooltipPosition="top"></i></th>
                   <th>Estado <i class="pi pi-info-circle text-xs" pTooltip="Estado de disponibilidad actual en almacenes o en obra." tooltipPosition="top"></i></th>
-                  <th>Recomendación Predictiva IA <i class="pi pi-info-circle text-xs" pTooltip="Plan de acción preventivo sugerido automáticamente por el sistema." tooltipPosition="top"></i></th>
+                  <th>Recomendación Predictiva <i class="pi pi-info-circle text-xs" pTooltip="Plan de acción preventivo sugerido automáticamente por el sistema." tooltipPosition="top"></i></th>
+                  <th style="width: 12%">Acciones</th>
                 </tr>
               </ng-template>
               <ng-template pTemplate="body" let-asset>
@@ -315,6 +327,16 @@
                       <i class="pi" [class.pi-exclamation-triangle]="asset.healthIndex <= 75" [class.pi-check-circle]="asset.healthIndex > 75"></i>
                       <span>{{ asset.recommendation }}</span>
                     </div>
+                  </td>
+                  <td>
+                    <button pButton icon="pi pi-cog"
+                            class="p-button-sm p-button-warning p-button-outlined"
+                            label="Programar"
+                            [disabled]="asset.status === 'mantenimiento'"
+                            pTooltip="Programar un servicio de mantenimiento preventivo o correctivo."
+                            tooltipPosition="top"
+                            (click)="openMaintenanceDialog(asset)">
+                    </button>
                   </td>
                 </tr>
               </ng-template>
@@ -360,7 +382,7 @@
                   <h5><i class="pi pi-box"></i> {{ rec.assetName }}</h5>
                 </div>
 
-                <div class="pricing-match" pTooltip="Tarifa de arrendamiento mensual recomendada por la IA optimizando retornos y riesgo." tooltipPosition="top">
+                <div class="pricing-match" pTooltip="Tarifa de arrendamiento mensual recomendada optimizando retornos y riesgo." tooltipPosition="top">
                   <span class="price-lbl">Tarifa Sugerida</span>
                   <span class="price-val">S/ {{ rec.suggestedMonthlyRate | number:'1.0-0' }} <small>/ mes</small></span>
                 </div>
@@ -395,7 +417,7 @@
       <div class="tab-content">
         <div class="glass-card mb-4 header-tip header-tip-simulator">
           <h3><i class="pi pi-sliders-h text-primary"></i> Sandbox de Evaluación Crediticia</h3>
-          <p class="subtitle text-sm">Modifique dinámicamente las condiciones financieras propuestas para predecir al instante el nivel de riesgo del contrato y recibir recomendaciones automáticas de mitigación de la IA.</p>
+          <p class="subtitle text-sm">Modifique dinámicamente las condiciones financieras propuestas para predecir al instante el nivel de riesgo del contrato y recibir recomendaciones automáticas de mitigación.</p>
         </div>
 
         <div class="simulator-layout">
@@ -481,7 +503,7 @@
 
             <!-- Recommendations list -->
             <div class="sim-recs-card glass-card">
-              <h4><i class="pi pi-bolt text-warning"></i> Recomendación del Motor IA <i class="pi pi-info-circle text-xs" style="color: var(--text-color-secondary); margin-left: 0.5rem;" pTooltip="Políticas sugeridas automáticamente por el motor para mitigar el riesgo de morosidad." tooltipPosition="left"></i></h4>
+              <h4><i class="pi pi-bolt text-warning"></i> Recomendación del Sistema <i class="pi pi-info-circle text-xs" style="color: var(--text-color-secondary); margin-left: 0.5rem;" pTooltip="Políticas sugeridas automáticamente por el motor para mitigar el riesgo de morosidad." tooltipPosition="left"></i></h4>
               
               <div class="rec-list">
                 <div class="rec-item" *ngFor="let rec of simResult.recommendations; let first = first" [class.first-rec]="first">
@@ -495,4 +517,47 @@
       </div>
     </p-tabPanel>
   </p-tabView>
+
+  <!-- Diálogo para Programar Mantenimiento -->
+  <p-dialog header="Programar Mantenimiento Predictivo" 
+            [(visible)]="maintenanceDialogVisible" 
+            [modal]="true" 
+            [style]="{width: '100%', maxWidth: '550px'}" 
+            [breakpoints]="{ '960px': '75vw', '641px': '95vw' }"
+            [draggable]="false" 
+            [resizable]="false"
+            styleClass="p-fluid">
+    
+    <div class="py-2" *ngIf="selectedAssetForMaintenance">
+      <div class="p-3 bg-blue-50 text-blue-900 border-round mb-4 text-sm">
+        <span class="font-bold block mb-1"><i class="pi pi-info-circle mr-1"></i>Maquinaria Seleccionada:</span>
+        <div>{{ selectedAssetForMaintenance.assetName }} (<code>{{ selectedAssetForMaintenance.assetCode }}</code>)</div>
+        <div class="mt-1">Índice de Salud Actual: <strong [style.color]="getHealthColor(selectedAssetForMaintenance.healthIndex)">{{ selectedAssetForMaintenance.healthIndex }}%</strong></div>
+      </div>
+
+      <div class="field mb-3">
+        <label for="maintService" class="font-bold block mb-1">Servicio Técnico Requerido *</label>
+        <p-dropdown id="maintService" 
+                    [options]="maintenanceServices" 
+                    [(ngModel)]="selectedMaintenanceServiceId" 
+                    placeholder="Seleccione un servicio técnico"
+                    appendTo="body">
+        </p-dropdown>
+      </div>
+
+      <div class="field mb-3">
+        <label for="maintReason" class="font-bold block mb-1">Detalle de Diagnóstico / Motivo *</label>
+        <textarea id="maintReason" 
+                  pInputTextarea 
+                  [(ngModel)]="maintenanceReason" 
+                  rows="4" 
+                  placeholder="Detalle el estado del activo o las observaciones del operador..."></textarea>
+      </div>
+    </div>
+
+    <ng-template pTemplate="footer">
+      <button pButton label="Cancelar" icon="pi pi-times" class="p-button-text p-button-secondary" (click)="maintenanceDialogVisible = false"></button>
+      <button pButton label="Confirmar Programación" icon="pi pi-check" class="p-button-warning" [disabled]="!selectedMaintenanceServiceId || !maintenanceReason.trim()" (click)="confirmMaintenance()"></button>
+    </ng-template>
+  </p-dialog>
 </div>

@@ -13,8 +13,14 @@ import { CardModule } from 'primeng/card';
 import { TooltipModule } from 'primeng/tooltip';
 import { InputNumberModule } from 'primeng/inputnumber';
 import { SliderModule } from 'primeng/slider';
+import { DialogModule } from 'primeng/dialog';
+import { ToastModule } from 'primeng/toast';
+import { InputTextareaModule } from 'primeng/inputtextarea';
+import { MessageService } from 'primeng/api';
 import { ThemeService } from '../../../core/services/theme.service';
 import { ApiService } from '../../../core/services/api.service';
+import { AssetService } from '../../assets/services/asset.service';
+import { ServiceCatalogService } from '../../services-catalog/services/service-catalog.service';
 import {
   IntelligenceService,
   RiskScore,
@@ -46,14 +52,19 @@ interface AssetOption {
   imports: [
     CommonModule, FormsModule, ChartModule, TabViewModule, KnobModule,
     DropdownModule, ButtonModule, TagModule, ProgressBarModule,
-    TableModule, CardModule, TooltipModule, InputNumberModule, SliderModule
+    TableModule, CardModule, TooltipModule, InputNumberModule, SliderModule,
+    DialogModule, ToastModule, InputTextareaModule
   ],
+  providers: [MessageService],
   templateUrl: './intelligence-page.component.html',
   styleUrls: ['./intelligence-page.component.scss']
 })
 export class IntelligencePageComponent implements OnInit {
   private intelligenceService = inject(IntelligenceService);
   private apiService = inject(ApiService);
+  private assetService = inject(AssetService);
+  private svcCatalog = inject(ServiceCatalogService);
+  private messageService = inject(MessageService);
   themeService = inject(ThemeService);
 
   // ── Risk Score ───────────────────────────────
@@ -99,6 +110,18 @@ export class IntelligencePageComponent implements OnInit {
   simResult: SimulatedRisk | null = null;
   simLoading = false;
 
+  // ── Asset Maintenance Dialog ──────────────────
+  maintenanceDialogVisible: boolean = false;
+  selectedAssetForMaintenance: any = null;
+  maintenanceReason: string = '';
+  selectedMaintenanceServiceId: number | null = null;
+  maintenanceServices: any[] = [];
+
+  // ── Risk History ──────────────────────────────
+  riskHistoryChartData: any = null;
+  riskHistoryChartOptions: any = null;
+  hasRiskHistory: boolean = false;
+
   sectors = [
     { label: 'Agroindustrial', value: 'agroindustrial' },
     { label: 'Minería', value: 'mineria' },
@@ -113,6 +136,7 @@ export class IntelligencePageComponent implements OnInit {
       this.initChartOptions(isDark);
       if (this.forecastChartData) this.forecastChartData = { ...this.forecastChartData };
       if (this.segmentChartData) this.segmentChartData = { ...this.segmentChartData };
+      if (this.riskHistoryChartData) this.riskHistoryChartData = { ...this.riskHistoryChartData };
     });
   }
 
@@ -124,6 +148,7 @@ export class IntelligencePageComponent implements OnInit {
     this.loadAssetHealth();
     this.loadMatchmaker();
     this.runSimulation();
+    this.loadMaintenanceServices();
   }
 
   // ── Data Loaders ─────────────────────────────
@@ -139,17 +164,64 @@ export class IntelligencePageComponent implements OnInit {
     });
   }
 
-  // ── 1. Risk Score ────────────────────────────
+  loadMaintenanceServices() {
+    this.svcCatalog.getServices().subscribe(data => {
+      this.maintenanceServices = data
+        .filter(s => s.category === 'mantenimiento' || s.category === 'reparacion' || s.serviceType === 'tecnico')
+        .map(s => ({ label: `${s.name} (S/. ${s.basePrice})`, value: s.serviceId }));
+    });
+  }
+
   calculateRisk() {
     if (!this.selectedClientId) return;
     this.riskLoading = true;
     this.intelligenceService.getRiskScore(this.selectedClientId).subscribe({
       next: (data) => {
         this.riskScore = data;
+        this.loadRiskHistory();
         this.riskLoading = false;
       },
       error: () => this.riskLoading = false
     });
+  }
+
+  loadRiskHistory() {
+    if (!this.selectedClientId) return;
+    this.intelligenceService.getRiskHistory(this.selectedClientId).subscribe({
+      next: (history) => {
+        this.initRiskHistoryChart(history);
+      }
+    });
+  }
+
+  initRiskHistoryChart(history: any[]) {
+    if (!history || history.length === 0) {
+      this.hasRiskHistory = false;
+      return;
+    }
+    this.hasRiskHistory = true;
+    
+    const labels = history.map(h => {
+      const date = new Date(h.generatedAt);
+      return date.toLocaleDateString('es-PE', { day: '2-digit', month: 'short', year: '2-digit' });
+    });
+    
+    const scores = history.map(h => h.score);
+
+    this.riskHistoryChartData = {
+      labels: labels,
+      datasets: [
+        {
+          label: 'Evolución del Risk Score',
+          data: scores,
+          fill: false,
+          borderColor: '#ef4444',
+          tension: 0.2,
+          pointRadius: 4,
+          pointBackgroundColor: '#ef4444'
+        }
+      ]
+    };
   }
 
   getRiskColor(score: number): string {
@@ -339,9 +411,28 @@ export class IntelligencePageComponent implements OnInit {
       },
       cutout: '55%'
     };
+
+    this.riskHistoryChartOptions = {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false }
+      },
+      scales: {
+        x: {
+          ticks: { color: textColorSecondary },
+          grid: { color: gridColor, drawBorder: false }
+        },
+        y: {
+          ticks: { color: textColorSecondary },
+          grid: { color: gridColor, drawBorder: false },
+          min: 0,
+          max: 100
+        }
+      }
+    };
   }
 
-  // ── 5. Asset Health ──────────────────────────
   loadAssetHealth() {
     this.healthLoading = true;
     this.intelligenceService.getAssetHealth().subscribe({
@@ -350,6 +441,40 @@ export class IntelligencePageComponent implements OnInit {
         this.healthLoading = false;
       },
       error: () => this.healthLoading = false
+    });
+  }
+
+  openMaintenanceDialog(asset: any) {
+    this.selectedAssetForMaintenance = asset;
+    this.maintenanceReason = '';
+    this.selectedMaintenanceServiceId = this.maintenanceServices.length > 0 ? this.maintenanceServices[0].value : null;
+    this.maintenanceDialogVisible = true;
+  }
+
+  confirmMaintenance() {
+    if (!this.selectedAssetForMaintenance || !this.selectedMaintenanceServiceId) return;
+
+    this.assetService.scheduleMaintenance(
+      this.selectedAssetForMaintenance.assetId,
+      this.selectedMaintenanceServiceId,
+      this.maintenanceReason
+    ).subscribe({
+      next: () => {
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Mantenimiento Programado',
+          detail: 'El mantenimiento se agendó correctamente.'
+        });
+        this.maintenanceDialogVisible = false;
+        this.loadAssetHealth();
+      },
+      error: () => {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'No se pudo programar el mantenimiento.'
+        });
+      }
     });
   }
 

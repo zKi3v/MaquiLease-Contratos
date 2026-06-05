@@ -13,7 +13,10 @@ Este documento centraliza el avance del sistema y las metas pendientes para la e
 
 ---
 
-## 🕒 Actividad Reciente (Hoy 2026-05-21)
+## 🕒 Actividad Reciente (Hoy 2026-06-02)
+- **Módulo de Gestión de Usuarios y Roles (Fase F - RBAC)**: Implementación completa de la administración de usuarios del sistema con seguridad basada en roles (RBAC):
+  - **Backend**: Adición de endpoints para listar usuarios (`GET /api/auth/users`), actualizar roles (`PUT /api/auth/users/{id}/role`) y alternar el estado de activación (`PUT /api/auth/users/{id}/status`) en `AuthController.cs`, asegurando validaciones a nivel de base de datos para restringir el acceso únicamente a cuentas de tipo `admin`.
+  - **Frontend**: Creación del componente `UsersListComponent` en Angular 18 con una interfaz de usuario premium usando PrimeNG (Tablas, Dropdowns y Tags). Integración de protección de rutas mediante guards funcionales, sincronización automática de roles con SQL Server en el servicio `AuthService` y visibilidad dinámica del menú en `SidebarComponent`.
 - **Armonización y Unificación de Ancho de Contenedores**: Estandarización de la geometría de maquetación en el *Sistema IA*, *Alertas* e *Historial de Pagos* a un ancho uniforme de `max-width: 1400px; margin: 0 auto; padding: 1.5rem;` para eliminar saltos y desalineaciones horizontales al navegar.
 - **Campos de Catálogos Secundarios (AutoComplete Premium)**: Reemplazo de dropdowns redundantes por componentes `p-autoComplete` con activación instantánea al enfocar (`completeOnFocus`) y filtrado case-sensitive en tiempo real, permitiendo escribir directamente tanto para buscar como para crear nuevos registros dinámicos.
 - **Perfeccionamiento UI/UX & Suite IA**: Refinamiento dinámico del score de confianza del Matchmaker (ligado proactivamente al riesgo crediticio), cajas de alerta con gradientes de marca y auras neon para cada pestaña inteligente, tooltips contextuales (`pTooltip`) integrados de forma global y transiciones sutiles de levantamiento en tablas y tarjetas del Dashboard.
@@ -59,6 +62,12 @@ Este documento centraliza el avance del sistema y las metas pendientes para la e
 - **Firma Digital & Detalle Financiero**: Wizard de contratos con canvas de firma iluminado digitalmente y vista de cuotas vencidas destacadas.
 - **PrimeNG 17**: Uso de componentes avanzados y Signals de Angular 18.
 - **Dashboard**: Layout responsivo con soporte nativo para Dark/Light mode.
+
+### 👥 Gestión de Usuarios & Roles (Fase F)
+- **Administración en Frontend**: Vista `/users` exclusiva para el rol `admin` que lista a todos los usuarios del sistema.
+- **Control de Estado de Usuario**: Botones de activación y desactivación de cuentas con confirmación e imposibilidad de auto-desactivación para el administrador actual.
+- **Gestión de Roles Dinámica**: Cambio instantáneo de rol de base de datos (`admin`, `operador`, `gerente`) sincronizado con Firebase.
+- **Filtro de Menú Dinámico**: El sidebar y los guards ocultan o bloquean páginas avanzadas según el rol del usuario autenticado.
 
 ---
 

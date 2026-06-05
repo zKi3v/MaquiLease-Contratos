@@ -1,0 +1,121 @@
+<div class="card p-4 m-4 surface-card border-round shadow-3 fadein animation-duration-300" style="max-width: 1400px; margin: 2rem auto !important;">
+  <div class="flex justify-content-between align-items-center mb-4 pb-3 border-bottom-1 surface-border">
+    <div>
+      <h2 class="text-2xl font-bold m-0 flex align-items-center gap-2">
+        <i class="pi pi-users text-primary text-2xl"></i>
+        Gestión de Usuarios y Roles
+      </h2>
+      <p class="text-color-secondary mt-1 mb-0">Control de accesos y roles administrativos para la plataforma MaquiLease.</p>
+    </div>
+    <button pButton label="Crear Usuario" icon="pi pi-user-plus" class="p-button-primary" (click)="openCreateDialog()"></button>
+  </div>
+
+  <p-table [value]="users" [loading]="loading" [paginator]="true" [rows]="10" 
+           styleClass="p-datatable-lg p-datatable-striped" 
+           responsiveLayout="scroll" [rowHover]="true">
+    <ng-template pTemplate="header">
+      <tr>
+        <th class="font-bold">Nombre Completo</th>
+        <th class="font-bold">Usuario</th>
+        <th class="font-bold">Correo Electrónico</th>
+        <th class="font-bold" style="width: 15rem">Rol Actual</th>
+        <th class="font-bold" style="width: 12rem">Asignar Rol</th>
+        <th class="font-bold text-center" style="width: 10rem">Estado</th>
+        <th class="font-bold text-center" style="width: 10rem">Acciones</th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-user>
+      <tr class="transition-all transition-duration-200">
+        <td class="font-medium text-900">{{user.fullName}}</td>
+        <td>
+          <span class="text-600 font-semibold">&#64;{{user.username}}</span>
+        </td>
+        <td>{{user.email}}</td>
+        <td>
+          <p-tag [value]="user.role | uppercase" [severity]="getRoleSeverity(user.role)" styleClass="font-bold px-3 py-1"></p-tag>
+        </td>
+        <td>
+          <p-dropdown [options]="roleOptions" [(ngModel)]="user.role" 
+                      (onChange)="changeRole(user, $event.value)"
+                      [disabled]="user.email === authService.userDbProfile()?.email"
+                      appendTo="body" styleClass="w-full text-sm">
+          </p-dropdown>
+        </td>
+        <td class="text-center">
+          <span [class]="user.isActive ? 'text-green-500 font-bold' : 'text-red-500 font-bold'">
+            <i class="pi" [ngClass]="user.isActive ? 'pi-check-circle' : 'pi-times-circle'"></i>
+            {{user.isActive ? 'Activo' : 'Inactivo'}}
+          </span>
+        </td>
+        <td class="text-center">
+          <div class="flex justify-content-center gap-2">
+            <button pButton [icon]="user.isActive ? 'pi pi-ban' : 'pi pi-check'"
+                    [class]="user.isActive ? 'p-button-warning p-button-outlined p-button-sm' : 'p-button-success p-button-outlined p-button-sm'"
+                    [pTooltip]="user.isActive ? 'Desactivar acceso' : 'Activar acceso'"
+                    tooltipPosition="top"
+                    [disabled]="user.email === authService.userDbProfile()?.email"
+                    (click)="toggleStatus(user)">
+            </button>
+            <button pButton icon="pi pi-trash"
+                    class="p-button-danger p-button-outlined p-button-sm"
+                    pTooltip="Eliminar usuario"
+                    tooltipPosition="top"
+                    [disabled]="user.email === authService.userDbProfile()?.email"
+                    (click)="deleteUser(user)">
+            </button>
+          </div>
+        </td>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="emptymessage">
+      <tr>
+        <td colspan="7" class="text-center p-4 text-color-secondary">No se encontraron usuarios registrados en la base de datos.</td>
+      </tr>
+    </ng-template>
+  </p-table>
+
+  <!-- Diálogo para Crear Nuevo Usuario Pre-registrado -->
+  <p-dialog header="Registrar Nuevo Usuario" 
+            [(visible)]="displayDialog" 
+            [modal]="true" 
+            [style]="{width: '100%', maxWidth: '550px'}" 
+            [draggable]="false" 
+            [resizable]="false"
+            [appendTo]="'body'"
+            styleClass="p-fluid">
+    
+    <div class="py-2">
+      <div class="field mb-3">
+        <label for="fullName" class="font-bold block mb-1">Nombre Completo *</label>
+        <input id="fullName" type="text" pInputText [(ngModel)]="newUser.fullName" placeholder="Ej. Juan Pérez">
+      </div>
+
+      <div class="field mb-3">
+        <label for="email" class="font-bold block mb-1">Correo Electrónico *</label>
+        <input id="email" type="email" pInputText [(ngModel)]="newUser.email" placeholder="juan.perez@maquilease.com">
+        <small class="text-500 mt-1 block">Este correo se usará para iniciar sesión en Firebase.</small>
+      </div>
+
+      <div class="field mb-3">
+        <label for="password" class="font-bold block mb-1">Contraseña *</label>
+        <input id="password" type="password" pInputText [(ngModel)]="newUser.password" placeholder="Mínimo 6 caracteres">
+        <small class="text-500 mt-1 block">Contraseña de acceso inicial del usuario.</small>
+      </div>
+
+      <div class="field mb-3">
+        <label for="role" class="font-bold block mb-1">Rol Asignado *</label>
+        <p-dropdown id="role" 
+                    [options]="roleOptions" 
+                    [(ngModel)]="newUser.role" 
+                    placeholder="Seleccione un rol"
+                    appendTo="body">
+        </p-dropdown>
+      </div>
+    </div>
+
+    <ng-template pTemplate="footer">
+      <button pButton label="Cancelar" icon="pi pi-times" class="p-button-text p-button-secondary" (click)="displayDialog = false"></button>
+      <button pButton label="Registrar Usuario" icon="pi pi-check" class="p-button-primary" [disabled]="!newUser.email.trim() || !newUser.fullName.trim() || !newUser.password?.trim() || newUser.password.trim().length < 6" (click)="createUser()"></button>
+    </ng-template>
+  </p-dialog>
+</div>

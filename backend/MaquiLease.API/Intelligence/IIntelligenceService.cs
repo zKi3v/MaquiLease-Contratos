@@ -11,5 +11,6 @@ namespace MaquiLease.API.Intelligence
         Task<List<AssetHealthDto>> GetAssetHealthAnalysis();
         Task<List<MatchmakerRecommendationDto>> GetMatchmakerRecommendations();
         Task<SimulatedRiskDto> SimulateRiskScore(RiskSimulationRequestDto request);
+        Task<List<RiskHistoryDto>> GetRiskHistory(int clientId);
     }
 }

@@ -3,11 +3,24 @@ using MaquiLease.API.Intelligence;
 using MaquiLease.API.Services;
 using Microsoft.EntityFrameworkCore;
 using QuestPDF.Infrastructure;
+using FirebaseAdmin;
+using Google.Apis.Auth.OAuth2;
+using System.IO;
 
 // Set QuestPDF license
 QuestPDF.Settings.License = LicenseType.Community;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Initialize Firebase Admin SDK
+var firebaseConfigFile = Path.Combine(builder.Environment.ContentRootPath, "maquilease-firebase-adminsdk-fbsvc-c134770f08.json");
+if (File.Exists(firebaseConfigFile))
+{
+    FirebaseApp.Create(new AppOptions
+    {
+        Credential = GoogleCredential.FromFile(firebaseConfigFile)
+    });
+}
 
 // Add services to the container.
 builder.Services.AddControllers();

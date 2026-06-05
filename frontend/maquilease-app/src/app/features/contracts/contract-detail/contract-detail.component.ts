@@ -198,4 +198,35 @@ export class ContractDetailComponent implements OnInit {
     if (inst.status === 'pagado') return false;
     return new Date(inst.dueDate) < new Date();
   }
+
+  downloadContractPdf() {
+    if (!this.contract) return;
+    this.loading = true;
+    this.contractService.downloadContractPdf(this.contractId).subscribe({
+      next: (blob: Blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `Contrato_${this.contract?.contractNumber}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+        this.loading = false;
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Descarga Completada',
+          detail: 'Se ha descargado el contrato en PDF.'
+        });
+      },
+      error: () => {
+        this.loading = false;
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'No se pudo descargar el PDF del contrato.'
+        });
+      }
+    });
+  }
 }

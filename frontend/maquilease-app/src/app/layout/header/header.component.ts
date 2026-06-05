@@ -1,19 +1,32 @@
 import { Component, inject, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
+import { FormsModule } from '@angular/forms';
 import { ThemeService } from '../../core/services/theme.service';
 import { SidebarService } from '../../core/services/sidebar.service';
 import { AuthService } from '../../core/services/auth.service';
 import { AlertsService, AlertDto } from '../../core/services/alerts.service';
+import { ApiService } from '../../core/services/api.service';
 import { Subscription, interval } from 'rxjs';
 import { OverlayPanelModule } from 'primeng/overlaypanel';
 import { ButtonModule } from 'primeng/button';
 import { DividerModule } from 'primeng/divider';
+import { DialogModule } from 'primeng/dialog';
+import { InputTextModule } from 'primeng/inputtext';
 
 @Component({
   selector: 'app-header',
   standalone: true,
-  imports: [CommonModule, RouterModule, OverlayPanelModule, ButtonModule, DividerModule],
+  imports: [
+    CommonModule,
+    RouterModule,
+    FormsModule,
+    OverlayPanelModule,
+    ButtonModule,
+    DividerModule,
+    DialogModule,
+    InputTextModule
+  ],
   template: `
     <header class="app-header">
       <div class="header-left">
@@ -21,7 +34,7 @@ import { DividerModule } from 'primeng/divider';
         <button class="hamburger" (click)="sidebarService.toggle()">
           <i class="pi pi-bars"></i>
         </button>
-        <span class="header-greeting">¡Bienvenido, <strong>{{ authService.currentUser()?.email || 'Usuario' }}</strong></span>
+        <span class="header-greeting">¡Bienvenido, <strong>{{ authService.userDbProfile()?.fullName || authService.currentUser()?.email || 'Usuario' }}</strong></span>
       </div>
 
       <div class="header-right">
@@ -75,15 +88,59 @@ import { DividerModule } from 'primeng/divider';
 
         <div class="header-divider hide-mobile"></div>
 
-        <div class="header-profile hide-mobile" (click)="authService.logout()" title="Cerrar Sesión">
-          <div class="profile-avatar"><i class="pi pi-sign-out"></i></div>
+        <div class="header-profile hide-mobile" (click)="profileOp.toggle($event)" title="Mi Cuenta">
+          <div class="profile-avatar"><i class="pi pi-user"></i></div>
           <div class="profile-info">
-            <span class="profile-name">Cerrar Sesión</span>
-            <span class="profile-role">Salir del sistema</span>
+            <span class="profile-name">{{ authService.userDbProfile()?.fullName || 'Mi Cuenta' }}</span>
+            <span class="profile-role">{{ authService.userDbProfile()?.role | titlecase }}</span>
           </div>
         </div>
       </div>
     </header>
+
+    <!-- Overlay de Perfil -->
+    <p-overlayPanel #profileOp [style]="{'width': '240px'}" styleClass="profile-overlay">
+      <ng-template pTemplate="content">
+        <div class="profile-menu-header p-2">
+          <div class="font-bold text-base mb-1 text-900">{{ authService.userDbProfile()?.fullName || 'Usuario' }}</div>
+          <div class="text-xs text-600 mb-2">{{ authService.currentUser()?.email }}</div>
+          <span class="text-xs font-bold px-2 py-1 border-round surface-200 text-600">{{ authService.userDbProfile()?.role | uppercase }}</span>
+        </div>
+        <p-divider styleClass="my-2"></p-divider>
+        <div class="flex flex-column gap-1">
+          <button pButton label="Editar Perfil" icon="pi pi-cog" class="p-button-text p-button-sm text-left w-full align-items-center" (click)="profileOp.hide(); openEditProfile()"></button>
+          <button pButton label="Cerrar Sesión" icon="pi pi-sign-out" class="p-button-text p-button-sm p-button-danger text-left w-full align-items-center" (click)="profileOp.hide(); authService.logout()"></button>
+        </div>
+      </ng-template>
+    </p-overlayPanel>
+
+    <!-- Diálogo de Edición de Perfil -->
+    <p-dialog header="Editar Mi Perfil" 
+              [(visible)]="displayProfileDialog" 
+              [modal]="true" 
+              [style]="{width: '100%', maxWidth: '500px'}" 
+              [draggable]="false" 
+              [resizable]="false"
+              styleClass="p-fluid">
+      
+      <div class="py-2">
+        <div class="field mb-3">
+          <label for="profileFullName" class="font-bold block mb-1">Nombre Completo *</label>
+          <input id="profileFullName" type="text" pInputText [(ngModel)]="profileForm.fullName" placeholder="Tu Nombre">
+        </div>
+
+        <div class="field mb-3">
+          <label for="profilePassword" class="font-bold block mb-1">Nueva Contraseña (Opcional)</label>
+          <input id="profilePassword" type="password" pInputText [(ngModel)]="profileForm.password" placeholder="Mínimo 6 caracteres para cambiar">
+          <small class="text-500 mt-1 block">Déjalo en blanco si no deseas cambiar tu contraseña.</small>
+        </div>
+      </div>
+
+      <ng-template pTemplate="footer">
+        <button pButton label="Cancelar" icon="pi pi-times" class="p-button-text p-button-secondary" (click)="displayProfileDialog = false"></button>
+        <button pButton label="Guardar Cambios" icon="pi pi-check" class="p-button-primary" [disabled]="!profileForm.fullName.trim() || (profileForm.password && profileForm.password.trim().length < 6)" (click)="saveProfile()"></button>
+      </ng-template>
+    </p-dialog>
   `,
   styles: [`
     .app-header {
@@ -176,7 +233,7 @@ import { DividerModule } from 'primeng/divider';
 
     .profile-avatar {
       width: 32px; height: 32px; border-radius: 9px;
-      background: linear-gradient(135deg, #ef4444, #b91c1c);
+      background: linear-gradient(135deg, #3b82f6, #1d4ed8);
       color: #fff; display: flex; align-items: center; justify-content: center;
       font-size: 1rem;
     }
@@ -201,10 +258,14 @@ export class HeaderComponent implements OnInit, OnDestroy {
   sidebarService = inject(SidebarService);
   authService = inject(AuthService);
   private alertsService = inject(AlertsService);
+  private apiService = inject(ApiService);
 
   unreadCount = 0;
   recentAlerts: AlertDto[] = [];
   private pollingSub?: Subscription;
+
+  displayProfileDialog = false;
+  profileForm = { fullName: '', password: '' };
 
   ngOnInit() {
     this.checkAlerts();
@@ -221,15 +282,44 @@ export class HeaderComponent implements OnInit, OnDestroy {
   }
 
   private checkAlerts() {
-    // Obtenemos todas las alertas para mostrar las más recientes en el dropdown
     this.alertsService.getAlerts().subscribe({
       next: (alerts) => {
-        this.recentAlerts = alerts.slice(0, 5); // Solo las 5 más recientes
+        this.recentAlerts = alerts.slice(0, 5);
         this.unreadCount = alerts.filter(a => !a.isRead).length;
       },
       error: () => {}
     });
   }
+
+  openEditProfile() {
+    const profile = this.authService.userDbProfile();
+    this.profileForm = {
+      fullName: profile?.fullName || '',
+      password: ''
+    };
+    this.displayProfileDialog = true;
+  }
+
+  saveProfile() {
+    const payload: any = { fullName: this.profileForm.fullName.trim() };
+    if (this.profileForm.password.trim()) {
+      payload.password = this.profileForm.password.trim();
+    }
+
+    this.apiService.put<any>('auth/profile', payload).subscribe({
+      next: (res) => {
+        const currentProfile = this.authService.userDbProfile();
+        this.authService.userDbProfile.set({
+          ...currentProfile,
+          fullName: res.fullName
+        });
+        alert('Perfil actualizado correctamente.');
+        this.displayProfileDialog = false;
+      },
+      error: (err) => {
+        console.error('Error al actualizar perfil:', err);
+        alert(err.error?.message || 'No se pudo actualizar el perfil.');
+      }
+    });
+  }
 }
-
-

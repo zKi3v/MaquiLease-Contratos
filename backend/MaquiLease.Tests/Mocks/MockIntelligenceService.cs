@@ -25,5 +25,6 @@ namespace MaquiLease.Tests.Mocks
         public Task<List<AssetHealthDto>> GetAssetHealthAnalysis() => Task.FromResult(new List<AssetHealthDto>());
         public Task<List<MatchmakerRecommendationDto>> GetMatchmakerRecommendations() => Task.FromResult(new List<MatchmakerRecommendationDto>());
         public Task<SimulatedRiskDto> SimulateRiskScore(RiskSimulationRequestDto request) => Task.FromResult(new SimulatedRiskDto());
+        public Task<List<RiskHistoryDto>> GetRiskHistory(int clientId) => Task.FromResult(new List<RiskHistoryDto>());
     }
 }

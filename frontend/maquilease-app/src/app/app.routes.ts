@@ -1,6 +1,8 @@
-import { Routes } from '@angular/router';
+import { Routes, Router } from '@angular/router';
 import { MainLayoutComponent } from './layout/main-layout/main-layout.component';
 import { authGuard } from './core/guards/auth.guard';
+import { inject } from '@angular/core';
+import { AuthService } from './core/services/auth.service';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
@@ -76,6 +78,19 @@ export const routes: Routes = [
       {
         path: 'alerts',
         loadComponent: () => import('./features/alerts/alerts-page/alerts-page.component').then(m => m.AlertsPageComponent)
+      },
+      {
+        path: 'users',
+        loadComponent: () => import('./features/users/users-list/users-list.component').then(m => m.UsersListComponent),
+        canActivate: [() => {
+          const authService = inject(AuthService);
+          const router = inject(Router);
+          if (authService.isAdmin()) {
+            return true;
+          }
+          router.navigate(['/dashboard']);
+          return false;
+        }]
       }
     ]
   },
