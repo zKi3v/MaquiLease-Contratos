@@ -158,4 +158,8 @@ export class IntelligenceService {
   getRiskHistory(clientId: number): Observable<any[]> {
     return this.api.get<any[]>(`intelligence/client/${clientId}/risk-history`);
   }
+
+  getClientAuditReport(clientId: number): Observable<{ report: string }> {
+    return this.api.get<{ report: string }>(`intelligence/audit/${clientId}`);
+  }
 }

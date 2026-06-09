@@ -72,6 +72,8 @@ export class IntelligencePageComponent implements OnInit {
   selectedClientId: number | null = null;
   riskScore: RiskScore | null = null;
   riskLoading = false;
+  auditReport: string | null = null;
+  auditLoading = false;
 
   // ── Pricing ──────────────────────────────────
   assets: AssetOption[] = [];
@@ -175,6 +177,7 @@ export class IntelligencePageComponent implements OnInit {
   calculateRisk() {
     if (!this.selectedClientId) return;
     this.riskLoading = true;
+    this.auditReport = null;
     this.intelligenceService.getRiskScore(this.selectedClientId).subscribe({
       next: (data) => {
         this.riskScore = data;
@@ -182,6 +185,31 @@ export class IntelligencePageComponent implements OnInit {
         this.riskLoading = false;
       },
       error: () => this.riskLoading = false
+    });
+  }
+
+  generateAuditReport() {
+    if (!this.selectedClientId) return;
+    this.auditLoading = true;
+    this.auditReport = null;
+    this.intelligenceService.getClientAuditReport(this.selectedClientId).subscribe({
+      next: (data) => {
+        this.auditReport = data.report;
+        this.auditLoading = false;
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Auditoría IA Completada',
+          detail: 'El informe generativo se generó exitosamente.'
+        });
+      },
+      error: () => {
+        this.auditLoading = false;
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'No se pudo conectar con la API de OpenCode Go.'
+        });
+      }
     });
   }
 

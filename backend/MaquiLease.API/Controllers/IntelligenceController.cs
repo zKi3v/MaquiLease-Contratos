@@ -114,5 +114,26 @@ namespace MaquiLease.API.Controllers
             var result = await _intelligence.GetRiskHistory(clientId);
             return Ok(result);
         }
+
+        /// <summary>
+        /// Genera una auditoría crediticia cualitativa con IA (OpenCode Go LLM) para el cliente.
+        /// </summary>
+        [HttpGet("audit/{clientId}")]
+        public async Task<ActionResult<object>> GetAuditReport(int clientId)
+        {
+            try
+            {
+                var result = await _intelligence.GetClientAuditReport(clientId);
+                return Ok(new { report = result });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (System.Exception ex)
+            {
+                return StatusCode(500, new { message = $"Error al generar auditoría con IA: {ex.Message}" });
+            }
+        }
     }
 }

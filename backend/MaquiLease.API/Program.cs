@@ -10,7 +10,27 @@ using System.IO;
 // Set QuestPDF license
 QuestPDF.Settings.License = LicenseType.Community;
 
+// Cargar archivo .env local si existe (para desarrollo)
+var envPath = Path.Combine(Directory.GetCurrentDirectory(), ".env");
+if (File.Exists(envPath))
+{
+    foreach (var line in File.ReadAllLines(envPath))
+    {
+        if (string.IsNullOrWhiteSpace(line) || line.TrimStart().StartsWith("#")) continue;
+        var parts = line.Split('=', 2);
+        if (parts.Length == 2)
+        {
+            var key = parts[0].Trim();
+            var val = parts[1].Trim().Trim('"').Trim('\'');
+            Environment.SetEnvironmentVariable(key, val);
+        }
+    }
+}
+
 var builder = WebApplication.CreateBuilder(args);
+
+// Asegurar que se vuelvan a leer las variables de entorno inyectadas
+builder.Configuration.AddEnvironmentVariables();
 
 // Initialize Firebase Admin SDK
 var firebaseConfigFile = Path.Combine(builder.Environment.ContentRootPath, "maquilease-firebase-adminsdk-fbsvc-c134770f08.json");
@@ -28,6 +48,7 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddScoped<PdfService>();
+builder.Services.AddHttpClient<OpenCodeService>();
 builder.Services.AddScoped<IIntelligenceService, IntelligenceService>();
 
 builder.Services.AddCors(options =>
