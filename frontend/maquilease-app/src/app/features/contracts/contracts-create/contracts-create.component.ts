@@ -10,6 +10,8 @@ import { CalendarModule } from 'primeng/calendar';
 import { InputTextareaModule } from 'primeng/inputtextarea';
 import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
+import { DialogModule } from 'primeng/dialog';
+import { TooltipModule } from 'primeng/tooltip';
 import SignaturePad from 'signature_pad';
 
 import { ContractService } from '../services/contract.service';
@@ -24,7 +26,8 @@ import { IntelligenceService } from '../../../core/services/intelligence.service
   standalone: true,
   imports: [
     CommonModule, FormsModule, ButtonModule, StepsModule,
-    DropdownModule, InputNumberModule, CalendarModule, InputTextareaModule, TableModule, TagModule
+    DropdownModule, InputNumberModule, CalendarModule, InputTextareaModule, TableModule, TagModule,
+    DialogModule, TooltipModule
   ],
   templateUrl: './contracts-create.component.html',
   styleUrls: ['./contracts-create.component.scss']
@@ -48,6 +51,9 @@ export class ContractsCreateComponent implements OnInit, AfterViewInit {
   clientRiskRecommendation: any = null;
   pricingRecommendation: any = null;
   recommendationLoading: boolean = false;
+  draftingLoading: boolean = false;
+  draftedTermsPreview: string = '';
+  draftDialogVisible: boolean = false;
 
   contractTypes = [
     { label: 'Arrendamiento Puro', value: 'arrendamiento' },
@@ -229,6 +235,38 @@ export class ContractsCreateComponent implements OnInit, AfterViewInit {
     this.contractService.createContract(this.contractForm).subscribe(() => {
       this.router.navigate(['/contracts']);
     });
+  }
+
+  draftTermsWithAi() {
+    if (!this.contractForm.clientId) return;
+    this.draftingLoading = true;
+    this.intelligenceService.draftContractTerms({
+      clientId: this.contractForm.clientId,
+      assetId: this.contractForm.assetId || undefined,
+      serviceId: this.contractForm.serviceId || undefined,
+      totalAmount: this.contractForm.totalAmount,
+      downPayment: this.contractForm.initialPayment || 0,
+      durationMonths: this.contractForm.numberOfInstallments || 12
+    }).subscribe({
+      next: (res) => {
+        this.draftedTermsPreview = res.draftedText;
+        this.draftDialogVisible = true;
+        this.draftingLoading = false;
+      },
+      error: () => {
+        this.draftingLoading = false;
+      }
+    });
+  }
+
+  applyDraftedTerms(replace: boolean) {
+    if (replace) {
+      this.contractForm.leasingTerms = this.draftedTermsPreview;
+    } else {
+      const current = this.contractForm.leasingTerms || '';
+      this.contractForm.leasingTerms = current ? `${current}\n\n${this.draftedTermsPreview}` : this.draftedTermsPreview;
+    }
+    this.draftDialogVisible = false;
   }
 
   get canGoNextStep1(): boolean {

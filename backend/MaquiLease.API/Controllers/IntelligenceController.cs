@@ -135,5 +135,43 @@ namespace MaquiLease.API.Controllers
                 return StatusCode(500, new { message = $"Error al generar auditoría con IA: {ex.Message}" });
             }
         }
+
+        /// <summary>
+        /// Redacta términos y cláusulas contractuales personalizadas basadas en IA.
+        /// </summary>
+        [HttpPost("draft-terms")]
+        public async Task<ActionResult<DraftTermsResponseDto>> DraftTerms([FromBody] DraftTermsRequestDto request)
+        {
+            try
+            {
+                var result = await _intelligence.DraftContractTerms(request);
+                return Ok(result);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (System.Exception ex)
+            {
+                return StatusCode(500, new { message = $"Error al redactar términos con IA: {ex.Message}" });
+            }
+        }
+
+        /// <summary>
+        /// Consulta al Asistente IA Global (chatbot) con contexto consolidado.
+        /// </summary>
+        [HttpPost("chat-assistant")]
+        public async Task<ActionResult<ChatAssistantResponseDto>> ChatAssistant([FromBody] ChatAssistantRequestDto request)
+        {
+            try
+            {
+                var result = await _intelligence.ChatAssistant(request);
+                return Ok(result);
+            }
+            catch (System.Exception ex)
+            {
+                return StatusCode(500, new { message = $"Error en el asistente de chat: {ex.Message}" });
+            }
+        }
     }
 }

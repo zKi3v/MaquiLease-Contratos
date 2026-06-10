@@ -890,6 +890,116 @@ namespace MaquiLease.API.Intelligence
             );
         }
 
+        public async Task<DraftTermsResponseDto> DraftContractTerms(DraftTermsRequestDto request)
+        {
+            var client = await _context.Clients.FindAsync(request.ClientId);
+            if (client == null) throw new KeyNotFoundException("Cliente no encontrado.");
+
+            var riskScoreResult = await CalculateRiskScore(request.ClientId);
+
+            string assetName = "";
+            if (request.AssetId.HasValue)
+            {
+                var asset = await _context.Assets.FindAsync(request.AssetId.Value);
+                assetName = asset?.Name ?? "";
+            }
+
+            string serviceName = "";
+            if (request.ServiceId.HasValue)
+            {
+                var service = await _context.Services.FindAsync(request.ServiceId.Value);
+                serviceName = service?.Name ?? "";
+            }
+
+            string contractType = request.AssetId.HasValue && request.ServiceId.HasValue ? "mixto" : (request.AssetId.HasValue ? "arrendamiento" : "servicios");
+
+            var draftedText = await _openCodeService.GetDraftedTermsAsync(
+                client.BusinessName,
+                client.Sector ?? "Sin especificar",
+                riskScoreResult.Score,
+                assetName,
+                serviceName,
+                contractType,
+                request.TotalAmount,
+                request.DownPayment,
+                request.DurationMonths
+            );
+
+            return new DraftTermsResponseDto { DraftedText = draftedText };
+        }
+
+        public async Task<ChatAssistantResponseDto> ChatAssistant(ChatAssistantRequestDto request)
+        {
+            var totalClients = await _context.Clients.CountAsync(c => c.IsActive);
+            var clientsAtRisk = await _context.Clients.CountAsync(c => c.IsActive && c.RiskScore > 50);
+            var totalContracts = await _context.Contracts.CountAsync();
+            var activeContracts = await _context.Contracts.CountAsync(c => c.Status == "activo" || c.Status == "vigente");
+            var completedContracts = await _context.Contracts.CountAsync(c => c.Status == "completado");
+            
+            var totalAssets = await _context.Assets.CountAsync();
+            var availableAssets = await _context.Assets.CountAsync(a => a.Status == "disponible");
+            var rentedAssets = await _context.Assets.CountAsync(a => a.Status == "alquilado");
+            var maintenanceAssets = await _context.Assets.CountAsync(a => a.Status == "mantenimiento");
+
+            var totalInstallments = await _context.Installments.CountAsync();
+            var paidInstallments = await _context.Installments.CountAsync(i => i.Status == "pagado");
+            var overdueInstallments = await _context.Installments.CountAsync(i => i.Status == "vencido");
+            var overdueAmount = await _context.Installments.Where(i => i.Status == "vencido").SumAsync(i => i.Amount);
+            var activeAlerts = await _context.Alerts.CountAsync(a => !a.IsRead);
+
+            // Obtener listas descriptivas de la DB para inyectar en el contexto del LLM
+            var clientList = await _context.Clients
+                .Where(c => c.IsActive)
+                .Select(c => new { Nombre = c.BusinessName, Riesgo = c.RiskScore ?? 0m, c.Sector })
+                .ToListAsync();
+
+            var assetList = await _context.Assets
+                .Select(a => new { a.Name, Codigo = a.Code, Estado = a.Status, Categoria = a.Category })
+                .ToListAsync();
+
+            var contractList = await _context.Contracts
+                .Include(c => c.Client)
+                .Include(c => c.Asset)
+                .Include(c => c.Service)
+                .Where(c => c.Status == "activo" || c.Status == "vigente")
+                .Select(c => new { 
+                    Contrato = c.ContractNumber, 
+                    Cliente = c.Client != null ? c.Client.BusinessName : "", 
+                    Item = c.Asset != null ? c.Asset.Name : (c.Service != null ? c.Service.Name : ""),
+                    Monto = c.TotalAmount,
+                    Cuotas = c.NumberOfInstallments
+                })
+                .ToListAsync();
+
+            var systemContext = System.Text.Json.JsonSerializer.Serialize(new
+            {
+                clientes = new { 
+                    total = totalClients, 
+                    enRiesgoCount = clientsAtRisk,
+                    lista = clientList
+                },
+                contratos = new { 
+                    total = totalContracts, 
+                    activosCount = activeContracts, 
+                    completados = completedContracts,
+                    listaActivos = contractList
+                },
+                activos = new { 
+                    total = totalAssets, 
+                    disponibles = availableAssets, 
+                    alquilados = rentedAssets, 
+                    enMantenimiento = maintenanceAssets,
+                    lista = assetList
+                },
+                cuotas = new { total = totalInstallments, pagadas = paidInstallments, vencidas = overdueInstallments, montoMora = overdueAmount },
+                alertasActivas = activeAlerts
+            });
+
+            var responseText = await _openCodeService.GetChatAssistantResponseAsync(request.History, systemContext);
+
+            return new ChatAssistantResponseDto { Response = responseText };
+        }
+
         // ═══════════════════════════════════════════════════════════
         // ML.NET SCHEMAS Y ENTRENAMIENTO DINÁMICO
         // ═══════════════════════════════════════════════════════════

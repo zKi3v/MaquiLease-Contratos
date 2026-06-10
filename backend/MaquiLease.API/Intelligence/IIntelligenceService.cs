@@ -13,5 +13,7 @@ namespace MaquiLease.API.Intelligence
         Task<SimulatedRiskDto> SimulateRiskScore(RiskSimulationRequestDto request);
         Task<List<RiskHistoryDto>> GetRiskHistory(int clientId);
         Task<string> GetClientAuditReport(int clientId);
+        Task<DraftTermsResponseDto> DraftContractTerms(DraftTermsRequestDto request);
+        Task<ChatAssistantResponseDto> ChatAssistant(ChatAssistantRequestDto request);
     }
 }

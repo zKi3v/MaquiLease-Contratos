@@ -2,11 +2,12 @@ import { Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { SidebarComponent } from '../sidebar/sidebar.component';
 import { HeaderComponent } from '../header/header.component';
+import { AiAssistantWidgetComponent } from '../ai-assistant-widget/ai-assistant-widget.component';
 
 @Component({
   selector: 'app-main-layout',
   standalone: true,
-  imports: [RouterOutlet, SidebarComponent, HeaderComponent],
+  imports: [RouterOutlet, SidebarComponent, HeaderComponent, AiAssistantWidgetComponent],
   template: `
     <div class="app-shell">
       <app-sidebar></app-sidebar>
@@ -14,6 +15,7 @@ import { HeaderComponent } from '../header/header.component';
       <main class="app-main">
         <router-outlet></router-outlet>
       </main>
+      <app-ai-assistant-widget></app-ai-assistant-widget>
     </div>
   `,
   styles: [`

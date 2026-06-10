@@ -1,0 +1,89 @@
+<!-- Botón flotante -->
+<button 
+  class="ai-floating-btn"
+  (click)="toggleChat()"
+  pTooltip="Consulte a la IA sobre su negocio"
+  tooltipPosition="left">
+  <span class="glow-aura"></span>
+  <i class="pi pi-sparkles text-xl"></i>
+</button>
+
+<!-- Contenedor del Chat -->
+<div class="ai-chat-window glass-panel" [class.chat-visible]="visible" [class.dark-mode]="themeService.isDarkMode()">
+  <!-- Cabecera -->
+  <div class="chat-header">
+    <div class="header-info">
+      <i class="pi pi-sparkles text-purple-400 mr-2 header-icon"></i>
+      <div>
+        <h4 class="m-0">Asistente IA</h4>
+        <span class="status-indicator">
+          <span class="dot"></span>
+          Conectado (DeepSeek V4)
+        </span>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button pButton icon="pi pi-trash" class="p-button-text p-button-secondary p-button-sm mr-1" (click)="clearChat()" pTooltip="Limpiar conversación" tooltipPosition="bottom"></button>
+      <button pButton icon="pi pi-times" class="p-button-text p-button-secondary p-button-sm" (click)="toggleChat()"></button>
+    </div>
+  </div>
+
+  <!-- Cuerpo -->
+  <div class="chat-body" id="chat-body-scroll" (click)="handleChatBodyClick($event)">
+    <div class="messages-list">
+      <div 
+        *ngFor="let msg of messages" 
+        class="message-bubble" 
+        [class.bubble-user]="msg.role === 'user'" 
+        [class.bubble-assistant]="msg.role === 'assistant'">
+        
+        <div class="bubble-avatar">
+          <i class="pi" [class.pi-user]="msg.role === 'user'" [class.pi-sparkles]="msg.role === 'assistant'"></i>
+        </div>
+        <div class="bubble-content" [innerHTML]="formatMarkdown(msg.content)"></div>
+      </div>
+
+      <!-- Indicador de escritura / Cargando -->
+      <div class="message-bubble bubble-assistant" *ngIf="loading">
+        <div class="bubble-avatar">
+          <i class="pi pi-sparkles"></i>
+        </div>
+        <div class="bubble-content loading-dots">
+          <span></span><span></span><span></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sugerencias de chips (Solo cuando no esté cargando) -->
+  <div class="chat-suggestions" *ngIf="!loading && messages.length <= 3">
+    <p class="suggestions-title text-xs">Preguntas sugeridas:</p>
+    <div class="suggestions-chips-grid">
+      <button 
+        *ngFor="let suggestion of suggestions" 
+        class="suggestion-chip"
+        (click)="useSuggestion(suggestion)">
+        {{ suggestion }}
+      </button>
+    </div>
+  </div>
+
+  <!-- Entrada de Mensajes -->
+  <div class="chat-footer">
+    <div class="input-wrapper">
+      <input 
+        type="text" 
+        [(ngModel)]="newMessage" 
+        placeholder="Pregunte sobre activos, deudas, clientes..." 
+        (keyup.enter)="sendMessage()"
+        [disabled]="loading" />
+      <button 
+        pButton 
+        icon="pi pi-send" 
+        class="p-button-rounded p-button-help p-button-sm send-btn"
+        (click)="sendMessage()" 
+        [disabled]="!newMessage.trim() || loading">
+      </button>
+    </div>
+  </div>
+</div>

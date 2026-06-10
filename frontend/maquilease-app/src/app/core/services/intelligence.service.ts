@@ -121,6 +121,34 @@ export interface SimulatedRisk {
   recommendations: string[];
 }
 
+// ── AI Draft Terms ──────────────────────────────
+export interface DraftTermsRequest {
+  clientId: number;
+  assetId?: number;
+  serviceId?: number;
+  totalAmount: number;
+  downPayment: number;
+  durationMonths: number;
+}
+
+export interface DraftTermsResponse {
+  draftedText: string;
+}
+
+// ── AI Chat Assistant ────────────────────────────
+export interface ChatMessage {
+  role: 'user' | 'assistant';
+  content: string;
+}
+
+export interface ChatAssistantRequest {
+  history: ChatMessage[];
+}
+
+export interface ChatAssistantResponse {
+  response: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -161,5 +189,13 @@ export class IntelligenceService {
 
   getClientAuditReport(clientId: number): Observable<{ report: string }> {
     return this.api.get<{ report: string }>(`intelligence/audit/${clientId}`);
+  }
+
+  draftContractTerms(request: DraftTermsRequest): Observable<DraftTermsResponse> {
+    return this.api.post<DraftTermsResponse>('intelligence/draft-terms', request);
+  }
+
+  chatAssistant(request: ChatAssistantRequest): Observable<ChatAssistantResponse> {
+    return this.api.post<ChatAssistantResponse>('intelligence/chat-assistant', request);
   }
 }

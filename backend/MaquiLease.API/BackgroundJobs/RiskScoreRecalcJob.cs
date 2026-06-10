@@ -52,8 +52,8 @@ namespace MaquiLease.API.BackgroundJobs
                 // Calcular score
                 var scoreResult = await intelligenceService.CalculateRiskScore(client.ClientId);
                 
-                // Si el riesgo es Problemático (score < 40)
-                if (scoreResult != null && scoreResult.Category == "Problemático")
+                // Si el riesgo es Crítico (score > 70)
+                if (scoreResult != null && (scoreResult.Category == "Crítico" || scoreResult.Score > 70))
                 {
                     // Evitar spam: chequear si ya generamos una alerta similar recientemente (ej. últimos 7 días)
                     var recentAlert = await context.Alerts
