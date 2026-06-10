@@ -101,8 +101,20 @@
           <p-calendar [(ngModel)]="endDate" dateFormat="dd/mm/yy" [showIcon]="true" styleClass="w-full" [disabled]="true"></p-calendar>
         </div>
         <div class="field col-12">
-          <label>Términos y Condiciones / Notas</label>
-          <textarea pInputTextarea [(ngModel)]="contractForm.leasingTerms" rows="4"></textarea>
+          <div class="flex justify-content-between align-items-center mb-1">
+            <label class="font-bold">Términos y Condiciones / Notas</label>
+            <button pButton 
+                    type="button" 
+                    icon="pi pi-sparkles" 
+                    class="p-button-sm p-button-help p-button-text w-auto p-0" 
+                    label="Generar Cláusulas con IA" 
+                    [loading]="draftingLoading"
+                    (click)="draftTermsWithAi()"
+                    pTooltip="Usa DeepSeek V4 Flash para redactar cláusulas a la medida de este contrato y cliente." 
+                    tooltipPosition="left">
+            </button>
+          </div>
+          <textarea pInputTextarea [(ngModel)]="contractForm.leasingTerms" rows="6" placeholder="Detalle los términos del contrato..."></textarea>
         </div>
 
         <!-- Previsualización de Cronograma de Cuotas -->
@@ -164,4 +176,40 @@
     </div>
 
   </div>
+
+  <!-- Diálogo para previsualizar cláusulas redactadas por la IA -->
+  <p-dialog header="Redacción de Cláusulas con IA (DeepSeek)" 
+            [(visible)]="draftDialogVisible" 
+            [modal]="true" 
+            [style]="{width: '100%', maxWidth: '600px'}" 
+            [breakpoints]="{ '960px': '75vw', '641px': '95vw' }"
+            [draggable]="false" 
+            [resizable]="false"
+            styleClass="p-fluid">
+    
+    <div class="py-2">
+      <div class="p-3 bg-purple-50 border-round mb-3 text-sm" style="border-left: 4px solid #8b5cf6;">
+        <i class="pi pi-sparkles mr-1 text-purple-600"></i>
+        <span class="text-purple-900 font-bold">Cláusula sugerida redactada en base al tipo de contrato, montos y score de riesgo del cliente. Revise y modifique el contenido antes de aplicarlo.</span>
+      </div>
+      
+      <div class="field">
+        <textarea pInputTextarea 
+                  [(ngModel)]="draftedTermsPreview" 
+                  rows="8" 
+                  class="font-monospace text-sm" 
+                  style="font-family: monospace; line-height: 1.5; padding: 1rem; border: 1px solid #d1d5db; border-radius: 6px;"></textarea>
+      </div>
+    </div>
+
+    <ng-template pTemplate="footer">
+      <div class="flex justify-content-between w-full align-items-center">
+        <button pButton label="Cancelar" icon="pi pi-times" class="p-button-text p-button-secondary w-auto" (click)="draftDialogVisible = false"></button>
+        <div class="flex gap-2">
+          <button pButton label="Agregar al Final" icon="pi pi-plus" class="p-button-outlined p-button-help w-auto" (click)="applyDraftedTerms(false)"></button>
+          <button pButton label="Reemplazar Todo" icon="pi pi-check" class="p-button-help w-auto" (click)="applyDraftedTerms(true)"></button>
+        </div>
+      </div>
+    </ng-template>
+  </p-dialog>
 </div>

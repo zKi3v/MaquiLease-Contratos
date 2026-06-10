@@ -35,6 +35,16 @@
             pTooltip="Procesa el modelo predictivo de riesgo comercial."
             tooltipPosition="top">
           </p-button>
+          <p-button
+            label="Auditar con IA"
+            icon="pi pi-sparkles"
+            severity="help"
+            (onClick)="generateAuditReport()"
+            [loading]="auditLoading"
+            [disabled]="!selectedClientId || riskLoading"
+            pTooltip="Genera una auditoría crediticia detallada usando OpenCode Go LLM."
+            tooltipPosition="top">
+          </p-button>
         </div>
 
         <div class="risk-results" *ngIf="riskScore">
@@ -89,6 +99,17 @@
             </div>
           </div>
         </div> <!-- Closes risk-overview -->
+
+        <!-- Reporte de Auditoría IA (OpenCode Go) -->
+        <div class="audit-report-card glass-card mt-4" *ngIf="auditReport">
+          <div class="card-header-ai flex align-items-center justify-content-between mb-3 border-bottom-1 border-color-secondary pb-2" style="border-bottom: 1px solid var(--glass-border);">
+            <h3 class="m-0" style="color: var(--primary-color); display: flex; align-items: center; gap: 8px;"><i class="pi pi-sparkles text-yellow-500"></i> Informe de Auditoría Inteligente (OpenCode AI)</h3>
+            <p-tag value="IA Completada" severity="success"></p-tag>
+          </div>
+          <div class="audit-report-content markdown-body" style="white-space: pre-wrap; line-height: 1.6; font-size: 0.95rem; color: var(--text-color); padding: 1rem; background: rgba(0,0,0,0.2); border-radius: 8px; border: 1px solid var(--glass-border);">
+            {{ auditReport }}
+          </div>
+        </div>
       </div> <!-- Closes risk-results -->
 
       <div class="empty-state" *ngIf="!riskScore && !riskLoading">

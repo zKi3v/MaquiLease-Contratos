@@ -22,6 +22,8 @@
     </PackageReference>
     <PackageReference Include="QuestPDF" Version="2026.2.4" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="7.0.20" />
+    <PackageReference Include="Microsoft.ML" Version="2.0.1" />
+    <PackageReference Include="Microsoft.ML.FastTree" Version="2.0.1" />
   </ItemGroup>
 
 </Project>

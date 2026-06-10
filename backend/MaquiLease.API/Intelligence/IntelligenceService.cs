@@ -1,17 +1,26 @@
 using MaquiLease.API.Data;
 using MaquiLease.API.Models.DTOs;
 using MaquiLease.API.Models.Entities;
+using MaquiLease.API.Services;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.ML;
+using Microsoft.ML.Data;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace MaquiLease.API.Intelligence
 {
     public class IntelligenceService : IIntelligenceService
     {
         private readonly AppDbContext _context;
+        private readonly OpenCodeService _openCodeService;
 
-        public IntelligenceService(AppDbContext context)
+        public IntelligenceService(AppDbContext context, OpenCodeService openCodeService)
         {
             _context = context;
+            _openCodeService = openCodeService;
         }
 
         // ═══════════════════════════════════════════════════════════
@@ -66,14 +75,18 @@ namespace MaquiLease.API.Intelligence
                 ? Math.Min(Math.Abs(clientTotalValue - sectorMedian) / sectorMedian, 1m)
                 : 0m;
 
-            // Cálculo final ponderado
-            decimal score = Math.Round(
-                (paymentHistoryRaw * 40m) +
-                (avgDaysLateRaw * 25m) +
-                (currentOverdueRaw * 20m) +
-                (sectorDeviationRaw * 15m), 2);
-
-            score = Math.Min(score, 100m);
+            // --- CÁLCULO PREDICATIVO MEDIANTE IA REAL (ML.NET REGRESSION) ---
+            EnsureModelsTrained();
+            var mlInput = new ClientRiskInput
+            {
+                PaymentHistoryRaw = (float)paymentHistoryRaw,
+                AvgDaysLateRaw = (float)avgDaysLateRaw,
+                CurrentOverdueRaw = (float)currentOverdueRaw,
+                SectorDeviationRaw = (float)sectorDeviationRaw
+            };
+            var prediction = _riskEngine!.Predict(mlInput);
+            decimal score = Math.Round((decimal)prediction.RiskScore, 2);
+            score = Math.Clamp(score, 0m, 100m);
 
             // Categorización
             var (category, color) = score switch
@@ -277,7 +290,34 @@ namespace MaquiLease.API.Intelligence
                 });
             }
 
-            decimal suggested = Math.Round(basePrice * riskAdjustment * request.DurationMonths, 2);
+            // --- CÁLCULO PREDICATIVO MEDIANTE IA REAL (ML.NET REGRESSION) ---
+            EnsureModelsTrained();
+            var mlAgeMonths = 12f;
+            if (request.AssetId.HasValue)
+            {
+                var asset = _context.Assets.Find(request.AssetId.Value);
+                if (asset != null && asset.PurchaseDate.HasValue)
+                {
+                    mlAgeMonths = (float)(DateTime.UtcNow - asset.PurchaseDate.Value).TotalDays / 30.0f;
+                }
+            }
+
+            var mlPricingInput = new PricingInput
+            {
+                BasePrice = (float)basePrice,
+                AgeMonths = mlAgeMonths,
+                ClientRiskScore = request.ClientId.HasValue ? (float)(_context.Clients.Find(request.ClientId.Value)?.RiskScore ?? 30m) : 30f,
+                DurationMonths = (float)request.DurationMonths
+            };
+            var pricingPrediction = _pricingEngine!.Predict(mlPricingInput);
+            decimal suggested = Math.Round((decimal)pricingPrediction.SuggestedPrice, 2);
+            
+            // Si por error del regresor da menor a cero, usar base
+            if (suggested <= 0)
+            {
+                suggested = Math.Round(basePrice * riskAdjustment * request.DurationMonths, 2);
+            }
+
             decimal min = Math.Round(suggested * 0.85m, 2);
             decimal max = Math.Round(suggested * 1.20m, 2);
 
@@ -812,6 +852,315 @@ namespace MaquiLease.API.Intelligence
                     GeneratedAt = p.GeneratedAt
                 })
                 .ToListAsync();
+        }
+
+        public async Task<string> GetClientAuditReport(int clientId)
+        {
+            var client = await _context.Clients.FindAsync(clientId);
+            if (client == null) throw new KeyNotFoundException("Cliente no encontrado.");
+
+            // Calcular Risk Score actual
+            var riskResult = await CalculateRiskScore(clientId);
+
+            // Resumen de cuotas
+            var contracts = await _context.Contracts
+                .Include(c => c.Installments)
+                .Where(c => c.ClientId == clientId)
+                .ToListAsync();
+
+            var allInstallments = contracts.SelectMany(c => c.Installments).ToList();
+            int total = allInstallments.Count;
+            int vencidas = allInstallments.Count(i => i.Status == "vencido");
+            int pagadas = allInstallments.Count(i => i.Status == "pagado");
+            decimal totalDeuda = allInstallments.Where(i => i.Status == "pendiente" || i.Status == "vencido").Sum(i => i.Amount);
+
+            string paymentSummary = $"El cliente tiene {total} cuotas programadas en total. De las cuales, {pagadas} están pagadas y {vencidas} están vencidas (mora). La deuda total pendiente asciende a S/ {totalDeuda:N2} (exposición financiera).";
+
+            // Resumen de contratos
+            int activos = contracts.Count(c => c.Status == "activo" || c.Status == "vigente");
+            int completados = contracts.Count(c => c.Status == "completado");
+            string contractsSummary = $"El cliente cuenta con {contracts.Count} contratos en total ({activos} activos, {completados} completados).";
+
+            return await _openCodeService.GetClientAuditReportAsync(
+                client.BusinessName,
+                client.Sector ?? "Sin especificar",
+                riskResult.Score,
+                paymentSummary,
+                contractsSummary
+            );
+        }
+
+        public async Task<DraftTermsResponseDto> DraftContractTerms(DraftTermsRequestDto request)
+        {
+            var client = await _context.Clients.FindAsync(request.ClientId);
+            if (client == null) throw new KeyNotFoundException("Cliente no encontrado.");
+
+            var riskScoreResult = await CalculateRiskScore(request.ClientId);
+
+            string assetName = "";
+            if (request.AssetId.HasValue)
+            {
+                var asset = await _context.Assets.FindAsync(request.AssetId.Value);
+                assetName = asset?.Name ?? "";
+            }
+
+            string serviceName = "";
+            if (request.ServiceId.HasValue)
+            {
+                var service = await _context.Services.FindAsync(request.ServiceId.Value);
+                serviceName = service?.Name ?? "";
+            }
+
+            string contractType = request.AssetId.HasValue && request.ServiceId.HasValue ? "mixto" : (request.AssetId.HasValue ? "arrendamiento" : "servicios");
+
+            var draftedText = await _openCodeService.GetDraftedTermsAsync(
+                client.BusinessName,
+                client.Sector ?? "Sin especificar",
+                riskScoreResult.Score,
+                assetName,
+                serviceName,
+                contractType,
+                request.TotalAmount,
+                request.DownPayment,
+                request.DurationMonths
+            );
+
+            return new DraftTermsResponseDto { DraftedText = draftedText };
+        }
+
+        public async Task<ChatAssistantResponseDto> ChatAssistant(ChatAssistantRequestDto request)
+        {
+            var totalClients = await _context.Clients.CountAsync(c => c.IsActive);
+            var clientsAtRisk = await _context.Clients.CountAsync(c => c.IsActive && c.RiskScore > 50);
+            var totalContracts = await _context.Contracts.CountAsync();
+            var activeContracts = await _context.Contracts.CountAsync(c => c.Status == "activo" || c.Status == "vigente");
+            var completedContracts = await _context.Contracts.CountAsync(c => c.Status == "completado");
+            
+            var totalAssets = await _context.Assets.CountAsync();
+            var availableAssets = await _context.Assets.CountAsync(a => a.Status == "disponible");
+            var rentedAssets = await _context.Assets.CountAsync(a => a.Status == "alquilado");
+            var maintenanceAssets = await _context.Assets.CountAsync(a => a.Status == "mantenimiento");
+
+            var totalInstallments = await _context.Installments.CountAsync();
+            var paidInstallments = await _context.Installments.CountAsync(i => i.Status == "pagado");
+            var overdueInstallments = await _context.Installments.CountAsync(i => i.Status == "vencido");
+            var overdueAmount = await _context.Installments.Where(i => i.Status == "vencido").SumAsync(i => i.Amount);
+            var activeAlerts = await _context.Alerts.CountAsync(a => !a.IsRead);
+
+            // Obtener listas descriptivas de la DB para inyectar en el contexto del LLM
+            var clientList = await _context.Clients
+                .Where(c => c.IsActive)
+                .Select(c => new { Nombre = c.BusinessName, Riesgo = c.RiskScore ?? 0m, c.Sector })
+                .ToListAsync();
+
+            var assetList = await _context.Assets
+                .Select(a => new { a.Name, Codigo = a.Code, Estado = a.Status, Categoria = a.Category })
+                .ToListAsync();
+
+            var contractList = await _context.Contracts
+                .Include(c => c.Client)
+                .Include(c => c.Asset)
+                .Include(c => c.Service)
+                .Where(c => c.Status == "activo" || c.Status == "vigente")
+                .Select(c => new { 
+                    Contrato = c.ContractNumber, 
+                    Cliente = c.Client != null ? c.Client.BusinessName : "", 
+                    Item = c.Asset != null ? c.Asset.Name : (c.Service != null ? c.Service.Name : ""),
+                    Monto = c.TotalAmount,
+                    Cuotas = c.NumberOfInstallments
+                })
+                .ToListAsync();
+
+            var systemContext = System.Text.Json.JsonSerializer.Serialize(new
+            {
+                clientes = new { 
+                    total = totalClients, 
+                    enRiesgoCount = clientsAtRisk,
+                    lista = clientList
+                },
+                contratos = new { 
+                    total = totalContracts, 
+                    activosCount = activeContracts, 
+                    completados = completedContracts,
+                    listaActivos = contractList
+                },
+                activos = new { 
+                    total = totalAssets, 
+                    disponibles = availableAssets, 
+                    alquilados = rentedAssets, 
+                    enMantenimiento = maintenanceAssets,
+                    lista = assetList
+                },
+                cuotas = new { total = totalInstallments, pagadas = paidInstallments, vencidas = overdueInstallments, montoMora = overdueAmount },
+                alertasActivas = activeAlerts
+            });
+
+            var responseText = await _openCodeService.GetChatAssistantResponseAsync(request.History, systemContext);
+
+            return new ChatAssistantResponseDto { Response = responseText };
+        }
+
+        // ═══════════════════════════════════════════════════════════
+        // ML.NET SCHEMAS Y ENTRENAMIENTO DINÁMICO
+        // ═══════════════════════════════════════════════════════════
+        public class ClientRiskInput
+        {
+            [ColumnName("PaymentHistoryRaw")]
+            public float PaymentHistoryRaw { get; set; }
+
+            [ColumnName("AvgDaysLateRaw")]
+            public float AvgDaysLateRaw { get; set; }
+
+            [ColumnName("CurrentOverdueRaw")]
+            public float CurrentOverdueRaw { get; set; }
+
+            [ColumnName("SectorDeviationRaw")]
+            public float SectorDeviationRaw { get; set; }
+
+            [ColumnName("Label")]
+            public float Label { get; set; }
+        }
+
+        public class ClientRiskPrediction
+        {
+            [ColumnName("Score")]
+            public float RiskScore { get; set; }
+        }
+
+        public class PricingInput
+        {
+            [ColumnName("BasePrice")]
+            public float BasePrice { get; set; }
+
+            [ColumnName("AgeMonths")]
+            public float AgeMonths { get; set; }
+
+            [ColumnName("ClientRiskScore")]
+            public float ClientRiskScore { get; set; }
+
+            [ColumnName("DurationMonths")]
+            public float DurationMonths { get; set; }
+
+            [ColumnName("Label")]
+            public float Label { get; set; }
+        }
+
+        public class PricingPrediction
+        {
+            [ColumnName("Score")]
+            public float SuggestedPrice { get; set; }
+        }
+
+        private static readonly object _modelLock = new object();
+        private static PredictionEngine<ClientRiskInput, ClientRiskPrediction>? _riskEngine = null;
+        private static PredictionEngine<PricingInput, PricingPrediction>? _pricingEngine = null;
+
+        private void EnsureModelsTrained()
+        {
+            if (_riskEngine != null && _pricingEngine != null) return;
+
+            lock (_modelLock)
+            {
+                if (_riskEngine != null && _pricingEngine != null) return;
+
+                var mlContext = new MLContext(seed: 42);
+
+                // --- 1. MODELO DE RIESGO ---
+                var riskTrainingData = new List<ClientRiskInput>();
+
+                var seedClients = _context.Clients.ToList();
+                foreach (var c in seedClients)
+                {
+                    var contracts = _context.Contracts.Include(x => x.Installments).Where(x => x.ClientId == c.ClientId).ToList();
+                    var allInst = contracts.SelectMany(x => x.Installments).ToList();
+                    
+                    var resolved = allInst.Where(i => i.Status == "pagado" || i.Status == "vencido").ToList();
+                    var onTime = resolved.Count(i => i.Status == "pagado" && (!i.PaidDate.HasValue || i.PaidDate.Value <= i.DueDate.AddDays(3)));
+                    
+                    float payHist = resolved.Count > 0 ? 1.0f - ((float)onTime / resolved.Count) : 0.0f;
+                    
+                    var lateInst = allInst.Where(i => i.Status == "vencido" || (i.Status == "pagado" && i.PaidDate.HasValue && i.PaidDate.Value > i.DueDate)).ToList();
+                    float avgLate = 0;
+                    if (lateInst.Any())
+                    {
+                        avgLate = (float)lateInst.Average(i => ((i.PaidDate ?? DateTime.UtcNow) - i.DueDate).TotalDays);
+                    }
+                    float avgLateRaw = Math.Min(avgLate / 30.0f, 1.0f);
+                    float curOverdue = Math.Min(allInst.Count(i => i.Status == "vencido") / 5.0f, 1.0f);
+                    
+                    riskTrainingData.Add(new ClientRiskInput
+                    {
+                        PaymentHistoryRaw = payHist,
+                        AvgDaysLateRaw = avgLateRaw,
+                        CurrentOverdueRaw = curOverdue,
+                        SectorDeviationRaw = c.RiskScore.HasValue ? (float)c.RiskScore.Value / 500.0f : 0.1f,
+                        Label = (float)(c.RiskScore ?? 25m)
+                    });
+                }
+
+                // Sintéticos de soporte
+                riskTrainingData.Add(new ClientRiskInput { PaymentHistoryRaw = 0.0f, AvgDaysLateRaw = 0.0f, CurrentOverdueRaw = 0.0f, SectorDeviationRaw = 0.0f, Label = 5.0f });
+                riskTrainingData.Add(new ClientRiskInput { PaymentHistoryRaw = 0.1f, AvgDaysLateRaw = 0.05f, CurrentOverdueRaw = 0.0f, SectorDeviationRaw = 0.1f, Label = 12.0f });
+                riskTrainingData.Add(new ClientRiskInput { PaymentHistoryRaw = 0.2f, AvgDaysLateRaw = 0.1f, CurrentOverdueRaw = 0.2f, SectorDeviationRaw = 0.15f, Label = 25.0f });
+                riskTrainingData.Add(new ClientRiskInput { PaymentHistoryRaw = 0.4f, AvgDaysLateRaw = 0.3f, CurrentOverdueRaw = 0.4f, SectorDeviationRaw = 0.2f, Label = 45.0f });
+                riskTrainingData.Add(new ClientRiskInput { PaymentHistoryRaw = 0.6f, AvgDaysLateRaw = 0.5f, CurrentOverdueRaw = 0.6f, SectorDeviationRaw = 0.3f, Label = 60.0f });
+                riskTrainingData.Add(new ClientRiskInput { PaymentHistoryRaw = 0.8f, AvgDaysLateRaw = 0.8f, CurrentOverdueRaw = 0.8f, SectorDeviationRaw = 0.4f, Label = 80.0f });
+                riskTrainingData.Add(new ClientRiskInput { PaymentHistoryRaw = 1.0f, AvgDaysLateRaw = 1.0f, CurrentOverdueRaw = 1.0f, SectorDeviationRaw = 0.5f, Label = 98.0f });
+                var riskDataView = mlContext.Data.LoadFromEnumerable(riskTrainingData);
+                var riskPipeline = mlContext.Transforms.Concatenate("Features", 
+                        nameof(ClientRiskInput.PaymentHistoryRaw), 
+                        nameof(ClientRiskInput.AvgDaysLateRaw), 
+                        nameof(ClientRiskInput.CurrentOverdueRaw), 
+                        nameof(ClientRiskInput.SectorDeviationRaw))
+                    .Append(mlContext.Regression.Trainers.FastTree(labelColumnName: "Label", featureColumnName: "Features", numberOfTrees: 50, numberOfLeaves: 10, minimumExampleCountPerLeaf: 1));
+
+                var riskModel = riskPipeline.Fit(riskDataView);
+                _riskEngine = mlContext.Model.CreatePredictionEngine<ClientRiskInput, ClientRiskPrediction>(riskModel);
+
+                // --- 2. MODELO DE PRECIOS ---
+                var pricingTrainingData = new List<PricingInput>();
+
+                var seedContracts = _context.Contracts.Include(x => x.Client).Include(x => x.Asset).Include(x => x.Service).ToList();
+                foreach (var c in seedContracts)
+                {
+                    float basePr = 2000f;
+                    float age = 12f;
+                    if (c.Asset != null)
+                    {
+                        basePr = (float)((c.Asset.CurrentValue ?? 0m) / 36m);
+                        age = c.Asset.PurchaseDate.HasValue ? (float)(DateTime.UtcNow - c.Asset.PurchaseDate.Value).TotalDays / 30.0f : 12f;
+                    }
+                    else if (c.Service != null)
+                    {
+                        basePr = (float)c.Service.BasePrice;
+                    }
+
+                    pricingTrainingData.Add(new PricingInput
+                    {
+                        BasePrice = basePr,
+                        AgeMonths = age,
+                        ClientRiskScore = c.Client != null ? (float)(c.Client.RiskScore ?? 30m) : 30f,
+                        DurationMonths = c.NumberOfInstallments > 0 ? c.NumberOfInstallments : 12f,
+                        Label = (float)c.TotalAmount
+                    });
+                }
+
+                pricingTrainingData.Add(new PricingInput { BasePrice = 1000f, AgeMonths = 6f, ClientRiskScore = 15f, DurationMonths = 12f, Label = 11400f });
+                pricingTrainingData.Add(new PricingInput { BasePrice = 1500f, AgeMonths = 12f, ClientRiskScore = 40f, DurationMonths = 6f, Label = 9450f });
+                pricingTrainingData.Add(new PricingInput { BasePrice = 2500f, AgeMonths = 24f, ClientRiskScore = 80f, DurationMonths = 24f, Label = 62100f });
+                pricingTrainingData.Add(new PricingInput { BasePrice = 3000f, AgeMonths = 18f, ClientRiskScore = 50f, DurationMonths = 12f, Label = 37800f });
+
+                var pricingDataView = mlContext.Data.LoadFromEnumerable(pricingTrainingData);
+                var pricingPipeline = mlContext.Transforms.Concatenate("Features",
+                        nameof(PricingInput.BasePrice),
+                        nameof(PricingInput.AgeMonths),
+                        nameof(PricingInput.ClientRiskScore),
+                        nameof(PricingInput.DurationMonths))
+                    .Append(mlContext.Regression.Trainers.FastTree(labelColumnName: "Label", featureColumnName: "Features", numberOfTrees: 50, numberOfLeaves: 10, minimumExampleCountPerLeaf: 1));
+
+                var pricingModel = pricingPipeline.Fit(pricingDataView);
+                _pricingEngine = mlContext.Model.CreatePredictionEngine<PricingInput, PricingPrediction>(pricingModel);
+            }
         }
     }
 }

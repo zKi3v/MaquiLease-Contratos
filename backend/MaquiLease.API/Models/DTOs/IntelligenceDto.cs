@@ -137,4 +137,37 @@ namespace MaquiLease.API.Models.DTOs
         public decimal Score { get; set; }
         public DateTime GeneratedAt { get; set; }
     }
+
+    // ── AI Draft Terms ──────────────────────────────
+    public class DraftTermsRequestDto
+    {
+        public int ClientId { get; set; }
+        public int? AssetId { get; set; }
+        public int? ServiceId { get; set; }
+        public decimal TotalAmount { get; set; }
+        public decimal DownPayment { get; set; }
+        public int DurationMonths { get; set; }
+    }
+
+    public class DraftTermsResponseDto
+    {
+        public string DraftedText { get; set; } = string.Empty;
+    }
+
+    // ── AI Chat Assistant ────────────────────────────
+    public class ChatMessageDto
+    {
+        public string Role { get; set; } = string.Empty; // user, assistant
+        public string Content { get; set; } = string.Empty;
+    }
+
+    public class ChatAssistantRequestDto
+    {
+        public List<ChatMessageDto> History { get; set; } = new();
+    }
+
+    public class ChatAssistantResponseDto
+    {
+        public string Response { get; set; } = string.Empty;
+    }
 }
