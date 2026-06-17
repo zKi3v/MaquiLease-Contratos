@@ -26,5 +26,8 @@ namespace MaquiLease.Tests.Mocks
         public Task<List<MatchmakerRecommendationDto>> GetMatchmakerRecommendations() => Task.FromResult(new List<MatchmakerRecommendationDto>());
         public Task<SimulatedRiskDto> SimulateRiskScore(RiskSimulationRequestDto request) => Task.FromResult(new SimulatedRiskDto());
         public Task<List<RiskHistoryDto>> GetRiskHistory(int clientId) => Task.FromResult(new List<RiskHistoryDto>());
+        public Task<string> GetClientAuditReport(int clientId) => Task.FromResult(string.Empty);
+        public Task<DraftTermsResponseDto> DraftContractTerms(DraftTermsRequestDto request) => Task.FromResult(new DraftTermsResponseDto());
+        public Task<ChatAssistantResponseDto> ChatAssistant(ChatAssistantRequestDto request) => Task.FromResult(new ChatAssistantResponseDto());
     }
 }
