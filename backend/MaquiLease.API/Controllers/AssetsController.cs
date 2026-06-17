@@ -19,6 +19,9 @@ namespace MaquiLease.API.Controllers
             _context = context;
         }
 
+        /// <summary>
+        /// Obtiene la lista completa de todos los activos registrados en el sistema.
+        /// </summary>
         [HttpGet]
         public async Task<ActionResult<IEnumerable<AssetDto>>> GetAssets()
         {
@@ -44,6 +47,9 @@ namespace MaquiLease.API.Controllers
             return Ok(assets);
         }
 
+        /// <summary>
+        /// Obtiene los detalles de un activo específico buscando por su ID.
+        /// </summary>
         [HttpGet("{id}")]
         public async Task<ActionResult<AssetDto>> GetAsset(int id)
         {
@@ -70,6 +76,9 @@ namespace MaquiLease.API.Controllers
             };
         }
 
+        /// <summary>
+        /// Registra un nuevo activo en el sistema. Retorna error si el código ya existe.
+        /// </summary>
         [HttpPost]
         public async Task<ActionResult<AssetDto>> CreateAsset(CreateAssetDto dto)
         {
@@ -98,6 +107,9 @@ namespace MaquiLease.API.Controllers
             return CreatedAtAction(nameof(GetAsset), new { id = asset.AssetId }, dto);
         }
 
+        /// <summary>
+        /// Actualiza la información de un activo existente (Requiere proporcionar todo el objeto actualizado).
+        /// </summary>
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateAsset(int id, CreateAssetDto dto)
         {
@@ -121,6 +133,9 @@ namespace MaquiLease.API.Controllers
             return NoContent();
         }
 
+        /// <summary>
+        /// Programa un mantenimiento para el activo especificado. Cambia su estado a 'mantenimiento' y agrega una nota histórica.
+        /// </summary>
         [HttpPost("{id}/maintenance")]
         public async Task<IActionResult> ScheduleMaintenance(int id, ScheduleMaintenanceDto dto)
         {

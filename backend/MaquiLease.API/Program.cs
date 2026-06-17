@@ -6,7 +6,7 @@ using QuestPDF.Infrastructure;
 using FirebaseAdmin;
 using Google.Apis.Auth.OAuth2;
 using System.IO;
-
+using Microsoft.OpenApi.Models;
 // Set QuestPDF license
 QuestPDF.Settings.License = LicenseType.Community;
 
@@ -46,7 +46,40 @@ if (File.Exists(firebaseConfigFile))
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "MaquiLease API", Version = "v1" });
+
+    // Configuración de Autenticación JWT para Swagger
+    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = SecuritySchemeType.Http,
+        Scheme = "Bearer",
+        BearerFormat = "JWT",
+        In = ParameterLocation.Header,
+        Description = "Pega aquí tu token JWT de Firebase (sin la palabra 'Bearer')."
+    });
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            new string[] {}
+        }
+    });
+
+    // Habilitar comentarios XML en español
+    var xmlFile = $"{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}.xml";
+    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+    c.IncludeXmlComments(xmlPath);
+});
 builder.Services.AddScoped<PdfService>();
 builder.Services.AddHttpClient<OpenCodeService>();
 builder.Services.AddScoped<IIntelligenceService, IntelligenceService>();
