@@ -2,6 +2,7 @@ using MaquiLease.API.Intelligence;
 using MaquiLease.API.Models.DTOs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace MaquiLease.API.Controllers
 {
@@ -119,6 +120,7 @@ namespace MaquiLease.API.Controllers
         /// Genera una auditoría crediticia cualitativa con IA (OpenCode Go LLM) para el cliente.
         /// </summary>
         [HttpGet("audit/{clientId}")]
+        [EnableRateLimiting("ai-per-user")]
         public async Task<ActionResult<object>> GetAuditReport(int clientId)
         {
             try
@@ -140,6 +142,7 @@ namespace MaquiLease.API.Controllers
         /// Redacta términos y cláusulas contractuales personalizadas basadas en IA.
         /// </summary>
         [HttpPost("draft-terms")]
+        [EnableRateLimiting("ai-per-user")]
         public async Task<ActionResult<DraftTermsResponseDto>> DraftTerms([FromBody] DraftTermsRequestDto request)
         {
             try
@@ -161,10 +164,24 @@ namespace MaquiLease.API.Controllers
         /// Consulta al Asistente IA Global (chatbot) con contexto consolidado.
         /// </summary>
         [HttpPost("chat-assistant")]
+        [EnableRateLimiting("ai-per-user")]
         public async Task<ActionResult<ChatAssistantResponseDto>> ChatAssistant([FromBody] ChatAssistantRequestDto request)
         {
             try
             {
+                if (request.History.Count == 0 || request.History.Count > 12)
+                {
+                    return BadRequest(new { message = "El historial del chat debe tener entre 1 y 12 mensajes." });
+                }
+
+                if (request.History.Any(m =>
+                        string.IsNullOrWhiteSpace(m.Content) ||
+                        m.Content.Length > 1000 ||
+                        (m.Role != "user" && m.Role != "assistant")))
+                {
+                    return BadRequest(new { message = "Cada mensaje debe tener rol user/assistant y un contenido de máximo 1000 caracteres." });
+                }
+
                 var result = await _intelligence.ChatAssistant(request);
                 return Ok(result);
             }

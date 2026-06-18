@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace MaquiLease.API.Models.DTOs
 {
     // ── Risk Score ──────────────────────────────────
@@ -157,12 +159,19 @@ namespace MaquiLease.API.Models.DTOs
     // ── AI Chat Assistant ────────────────────────────
     public class ChatMessageDto
     {
+        [Required]
+        [RegularExpression("^(user|assistant)$")]
         public string Role { get; set; } = string.Empty; // user, assistant
+
+        [Required]
+        [MaxLength(1000)]
         public string Content { get; set; } = string.Empty;
     }
 
     public class ChatAssistantRequestDto
     {
+        [Required]
+        [MaxLength(12)]
         public List<ChatMessageDto> History { get; set; } = new();
     }
 

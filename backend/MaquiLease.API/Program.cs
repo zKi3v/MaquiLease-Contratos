@@ -6,7 +6,11 @@ using QuestPDF.Infrastructure;
 using FirebaseAdmin;
 using Google.Apis.Auth.OAuth2;
 using System.IO;
+using System.Security.Claims;
+using System.Text;
+using System.Threading.RateLimiting;
 using Microsoft.OpenApi.Models;
+using Microsoft.AspNetCore.RateLimiting;
 // Set QuestPDF license
 QuestPDF.Settings.License = LicenseType.Community;
 
@@ -32,13 +36,24 @@ var builder = WebApplication.CreateBuilder(args);
 // Asegurar que se vuelvan a leer las variables de entorno inyectadas
 builder.Configuration.AddEnvironmentVariables();
 
-// Initialize Firebase Admin SDK
+// Initialize Firebase Admin SDK. Prefer deploy secrets over service-account files.
+var firebaseCredentialJson = builder.Configuration["Firebase:CredentialsJson"]
+    ?? Environment.GetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS_JSON");
 var firebaseConfigFile = Path.Combine(builder.Environment.ContentRootPath, "maquilease-firebase-adminsdk-fbsvc-c134770f08.json");
-if (File.Exists(firebaseConfigFile))
+if (!string.IsNullOrWhiteSpace(firebaseCredentialJson))
 {
+    using var credentialStream = new MemoryStream(Encoding.UTF8.GetBytes(firebaseCredentialJson));
     FirebaseApp.Create(new AppOptions
     {
-        Credential = GoogleCredential.FromFile(firebaseConfigFile)
+        Credential = ServiceAccountCredential.FromServiceAccountData(credentialStream).ToGoogleCredential()
+    });
+}
+else if (File.Exists(firebaseConfigFile))
+{
+    using var credentialStream = File.OpenRead(firebaseConfigFile);
+    FirebaseApp.Create(new AppOptions
+    {
+        Credential = ServiceAccountCredential.FromServiceAccountData(credentialStream).ToGoogleCredential()
     });
 }
 
@@ -83,6 +98,26 @@ builder.Services.AddSwaggerGen(c =>
 builder.Services.AddScoped<PdfService>();
 builder.Services.AddHttpClient<OpenCodeService>();
 builder.Services.AddScoped<IIntelligenceService, IntelligenceService>();
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    options.AddPolicy("ai-per-user", httpContext =>
+    {
+        var userKey = httpContext.User.FindFirstValue(ClaimTypes.Email)
+            ?? httpContext.User.FindFirstValue("email")
+            ?? httpContext.Connection.RemoteIpAddress?.ToString()
+            ?? "anonymous";
+
+        return RateLimitPartition.GetFixedWindowLimiter(userKey, _ => new FixedWindowRateLimiterOptions
+        {
+            PermitLimit = builder.Configuration.GetValue("RateLimiting:AiRequestsPerMinute", 10),
+            Window = TimeSpan.FromMinutes(1),
+            QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+            QueueLimit = 0,
+            AutoReplenishment = true
+        });
+    });
+});
 
 builder.Services.AddCors(options =>
 {
@@ -161,6 +196,7 @@ app.UseCors("AllowAngularApp");
 // app.UseHttpsRedirection(); // Disable for docker http
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseRateLimiter();
 app.MapControllers();
 
 app.Run();

@@ -327,9 +327,11 @@ Instrucciones obligatorias de tono y redacción:
                     new { role = "system", content = systemPrompt }
                 };
 
-                foreach (var msg in messages)
+                foreach (var msg in messages.TakeLast(12))
                 {
-                    requestMessages.Add(new { role = msg.Role, content = msg.Content });
+                    var role = msg.Role == "assistant" ? "assistant" : "user";
+                    var content = msg.Content.Length > 1000 ? msg.Content[..1000] : msg.Content;
+                    requestMessages.Add(new { role, content });
                 }
 
                 var requestBody = new
