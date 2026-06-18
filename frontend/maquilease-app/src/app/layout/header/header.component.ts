@@ -131,14 +131,14 @@ import { InputTextModule } from 'primeng/inputtext';
 
         <div class="field mb-3">
           <label for="profilePassword" class="font-bold block mb-1">Nueva Contraseña (Opcional)</label>
-          <input id="profilePassword" type="password" pInputText [(ngModel)]="profileForm.password" placeholder="Mínimo 6 caracteres para cambiar">
+          <input id="profilePassword" type="password" pInputText [(ngModel)]="profileForm.password" placeholder="Mínimo 12 caracteres para cambiar">
           <small class="text-500 mt-1 block">Déjalo en blanco si no deseas cambiar tu contraseña.</small>
         </div>
       </div>
 
       <ng-template pTemplate="footer">
         <button pButton label="Cancelar" icon="pi pi-times" class="p-button-text p-button-secondary" (click)="displayProfileDialog = false"></button>
-        <button pButton label="Guardar Cambios" icon="pi pi-check" class="p-button-primary" [disabled]="!profileForm.fullName.trim() || (profileForm.password && profileForm.password.trim().length < 6)" (click)="saveProfile()"></button>
+        <button pButton label="Guardar Cambios" icon="pi pi-check" class="p-button-primary" [disabled]="!profileForm.fullName.trim() || (profileForm.password && profileForm.password.trim().length < 12)" (click)="saveProfile()"></button>
       </ng-template>
     </p-dialog>
   `,

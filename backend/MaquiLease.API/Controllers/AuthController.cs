@@ -217,10 +217,15 @@ namespace MaquiLease.API.Controllers
                 return BadRequest("Rol inválido. Los roles permitidos son: admin, operador, gerente.");
             }
 
-            var password = string.IsNullOrWhiteSpace(request.Password) ? "User123!" : request.Password.Trim();
-            if (password.Length < 6)
+            if (string.IsNullOrWhiteSpace(request.Password))
             {
-                return BadRequest(new { message = "La contraseña debe tener al menos 6 caracteres." });
+                return BadRequest(new { message = "La contraseña es obligatoria." });
+            }
+
+            var password = request.Password.Trim();
+            if (password.Length < 12)
+            {
+                return BadRequest(new { message = "La contraseña debe tener al menos 12 caracteres." });
             }
 
             try
@@ -291,9 +296,9 @@ namespace MaquiLease.API.Controllers
                 return StatusCode(403, new { message = "Este usuario ha sido desactivado en la plataforma." });
             }
 
-            if (!string.IsNullOrEmpty(request.Password) && request.Password.Length < 6)
+            if (!string.IsNullOrEmpty(request.Password) && request.Password.Length < 12)
             {
-                return BadRequest(new { message = "La contraseña debe tener al menos 6 caracteres." });
+                return BadRequest(new { message = "La contraseña debe tener al menos 12 caracteres." });
             }
 
             try

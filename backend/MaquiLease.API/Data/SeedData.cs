@@ -65,9 +65,9 @@ namespace MaquiLease.API.Data
             // ═══════════════════════════════════════════════
             var users = new List<User>
             {
-                new User { UserId = 1, Username = "admin", Email = "admin@maquilease.com", PasswordHash = BCrypt.Net.BCrypt.HashPassword("admin123"), FullName = "Carlos Mendoza", Role = "admin", IsActive = true },
-                new User { UserId = 2, Username = "operador", Email = "operador@maquilease.com", PasswordHash = BCrypt.Net.BCrypt.HashPassword("op123"), FullName = "María López", Role = "operador", IsActive = true },
-                new User { UserId = 3, Username = "gerente", Email = "gerente@maquilease.com", PasswordHash = BCrypt.Net.BCrypt.HashPassword("ger123"), FullName = "Luis Vargas", Role = "gerente", IsActive = true }
+                new User { UserId = 1, Username = "admin", Email = "admin@maquilease.com", PasswordHash = "firebase-auth", FullName = "Carlos Mendoza", Role = "admin", IsActive = true },
+                new User { UserId = 2, Username = "operador", Email = "operador@maquilease.com", PasswordHash = "firebase-auth", FullName = "María López", Role = "operador", IsActive = true },
+                new User { UserId = 3, Username = "gerente", Email = "gerente@maquilease.com", PasswordHash = "firebase-auth", FullName = "Luis Vargas", Role = "gerente", IsActive = true }
             };
             context.Users.AddRange(users);
             context.SaveChanges();

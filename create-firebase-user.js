@@ -29,9 +29,27 @@ const createOrUpdateUser = async (email, password, displayName) => {
 };
 
 const run = async () => {
-  // Firebase requires passwords to be at least 6 characters
-  await createOrUpdateUser('operador@maquilease.com', 'operador123', 'María López');
-  await createOrUpdateUser('gerente@maquilease.com', 'gerente123', 'Luis Vargas');
+  const users = [
+    {
+      email: 'operador@maquilease.com',
+      password: process.env.OPERADOR_PASSWORD,
+      displayName: 'María López',
+    },
+    {
+      email: 'gerente@maquilease.com',
+      password: process.env.GERENTE_PASSWORD,
+      displayName: 'Luis Vargas',
+    },
+  ];
+
+  for (const user of users) {
+    if (!user.password || user.password.length < 12) {
+      throw new Error(`Define una contraseña segura en la variable de entorno para ${user.email}`);
+    }
+
+    await createOrUpdateUser(user.email, user.password, user.displayName);
+  }
+
   process.exit(0);
 };
 

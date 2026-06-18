@@ -98,7 +98,7 @@
 
       <div class="field mb-3">
         <label for="password" class="font-bold block mb-1">Contraseña *</label>
-        <input id="password" type="password" pInputText [(ngModel)]="newUser.password" placeholder="Mínimo 6 caracteres">
+        <input id="password" type="password" pInputText [(ngModel)]="newUser.password" placeholder="Mínimo 12 caracteres">
         <small class="text-500 mt-1 block">Contraseña de acceso inicial del usuario.</small>
       </div>
 
@@ -115,7 +115,7 @@
 
     <ng-template pTemplate="footer">
       <button pButton label="Cancelar" icon="pi pi-times" class="p-button-text p-button-secondary" (click)="displayDialog = false"></button>
-      <button pButton label="Registrar Usuario" icon="pi pi-check" class="p-button-primary" [disabled]="!newUser.email.trim() || !newUser.fullName.trim() || !newUser.password?.trim() || newUser.password.trim().length < 6" (click)="createUser()"></button>
+      <button pButton label="Registrar Usuario" icon="pi pi-check" class="p-button-primary" [disabled]="!newUser.email.trim() || !newUser.fullName.trim() || !newUser.password?.trim() || newUser.password.trim().length < 12" (click)="createUser()"></button>
     </ng-template>
   </p-dialog>
 </div>

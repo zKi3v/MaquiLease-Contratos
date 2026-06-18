@@ -123,8 +123,8 @@ export class UsersListComponent implements OnInit {
       alert('El correo, nombre completo y contraseña son obligatorios.');
       return;
     }
-    if (this.newUser.password.trim().length < 6) {
-      alert('La contraseña debe tener al menos 6 caracteres.');
+    if (this.newUser.password.trim().length < 12) {
+      alert('La contraseña debe tener al menos 12 caracteres.');
       return;
     }
 
